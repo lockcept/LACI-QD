@@ -20,8 +20,8 @@ class Board:
             board.p2_pos = self.p2_pos
             board.p1_walls = self.p1_walls
             board.p2_walls = self.p2_walls
-            board.h_walls = self.h_walls
-            board.v_walls = self.v_walls
+            board.h_walls = set([(x, y) for x, y in self.h_walls])
+            board.v_walls = set([(x, y) for x, y in self.v_walls])
             return board
         else:
             board = Board(self.n)
@@ -46,7 +46,7 @@ class Board:
     def string_representation(self):
         def format_sorted_tuple_set(tuple_set):
             sorted_tuples = sorted(tuple_set, key=lambda x: (x[0], x[1]))
-            return ", ".join(f"({a}, {b})" for a, b in sorted_tuples)
+            return ",".join(f"({a},{b})" for a, b in sorted_tuples)
 
         return (
             str(self.p1_pos)
