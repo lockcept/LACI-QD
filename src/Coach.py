@@ -11,12 +11,13 @@ from tqdm import tqdm
 from Arena import Arena
 from MCTS import MCTS
 from Game import Game
+from Trainer import NNetWrapper
 
 log = logging.getLogger(__name__)
 
 
 class Coach:
-    def __init__(self, game: Game, nnet, args):
+    def __init__(self, game: Game, nnet: NNetWrapper, args):
         self.game = game
         self.nnet = nnet
         self.pnet = self.nnet.__class__(self.game)  # the competitor network
@@ -34,7 +35,7 @@ class Coach:
 
         while True:
             episodeStep += 1
-            canonicalBoard = self.game.getCanonicalForm(board, self.curPlayer)
+            canonicalBoard = board.get_canonical_form(self.curPlayer)
             temp = int(episodeStep < self.args.tempThreshold)
 
             pi = self.mcts.getActionProb(canonicalBoard, temp=temp)

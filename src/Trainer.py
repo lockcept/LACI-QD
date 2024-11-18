@@ -1,5 +1,4 @@
 import os
-import time
 
 import numpy as np
 from tqdm import tqdm
@@ -82,9 +81,6 @@ class NNetWrapper:
         """
         board: np array with board
         """
-        # timing
-        start = time.time()
-
         # preparing input
         board = torch.FloatTensor(board.astype(np.float64))
         if args.cuda:
@@ -94,7 +90,6 @@ class NNetWrapper:
         with torch.no_grad():
             pi, v = self.nnet(board)
 
-        # print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return torch.exp(pi).data.cpu().numpy()[0], v.data.cpu().numpy()[0]
 
     def loss_pi(self, targets, outputs):

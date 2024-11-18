@@ -1,11 +1,15 @@
 import numpy as np
 
+from Board import Board
+from Game import Game
+from MCTS import MCTS
+
 
 class Player:
-    def __init__(self, game):
+    def __init__(self, game: Game):
         self.game = game
 
-    def play(self, board):
+    def play(self, board: Board):
         pass
 
 
@@ -51,7 +55,7 @@ class HumanQuoridorPlayer(Player):
 
 
 class MCTSPlayer(Player):
-    def __init__(self, game, mcts):
+    def __init__(self, game, mcts: MCTS):
         Player.__init__(self, game)
         self.game = game
         self.mcts = mcts

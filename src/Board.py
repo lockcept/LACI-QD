@@ -3,6 +3,7 @@ import numpy as np
 
 
 class Board:
+
     def __init__(self, n):
         self.n = n
         self.p1_pos = (0, n // 2)
@@ -11,6 +12,55 @@ class Board:
         self.p2_walls = n * n // 8
         self.h_walls = set()
         self.v_walls = set()
+
+    def get_canonical_form(self, player):
+        if player == 1:
+            board = Board(self.n)
+            board.p1_pos = self.p1_pos
+            board.p2_pos = self.p2_pos
+            board.p1_walls = self.p1_walls
+            board.p2_walls = self.p2_walls
+            board.h_walls = self.h_walls
+            board.v_walls = self.v_walls
+            return board
+        else:
+            board = Board(self.n)
+            board.p1_pos = (self.n - 1 - self.p2_pos[0], self.p2_pos[1])
+            board.p2_pos = (self.n - 1 - self.p1_pos[0], self.p1_pos[1])
+            board.p1_walls = self.p2_walls
+            board.p2_walls = self.p1_walls
+            board.h_walls = set([(self.n - 2 - x, y) for x, y in self.h_walls])
+            board.v_walls = set([(self.n - 2 - x, y) for x, y in self.v_walls])
+            return board
+
+    def get_flipped_form(self):
+        board = Board(self.n)
+        board.p1_pos = (self.p1_pos[0], self.n - 1 - self.p1_pos[1])
+        board.p2_pos = (self.p2_pos[0], self.n - 1 - self.p2_pos[1])
+        board.p1_walls = self.p1_walls
+        board.p2_walls = self.p2_walls
+        board.h_walls = set([(x, self.n - 2 - y) for x, y in self.h_walls])
+        board.v_walls = set([(x, self.n - 2 - y) for x, y in self.v_walls])
+        return board
+
+    def string_representation(self):
+        def format_sorted_tuple_set(tuple_set):
+            sorted_tuples = sorted(tuple_set, key=lambda x: (x[0], x[1]))
+            return ", ".join(f"({a}, {b})" for a, b in sorted_tuples)
+
+        return (
+            str(self.p1_pos)
+            + ":"
+            + str(self.p2_pos)
+            + ":"
+            + format_sorted_tuple_set(self.h_walls)
+            + ":"
+            + format_sorted_tuple_set(self.v_walls)
+            + ":"
+            + str(self.p1_walls)
+            + ":"
+            + str(self.p2_walls)
+        )
 
     def execute_move(self, move, player):
         if player == 1:
@@ -49,13 +99,12 @@ class Board:
                 return True
         return False
 
-    def get_legal_moves(self, player):
-        if player == 1:
-            pos = self.p1_pos
-            opponent_pos = self.p2_pos
-        else:
-            pos = self.p2_pos
-            opponent_pos = self.p1_pos
+    def get_legal_moves(self):
+        """
+        Returns a list of legal moves for player 1
+        """
+        pos = self.p1_pos
+        opponent_pos = self.p2_pos
 
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         legal_moves = []
@@ -173,11 +222,12 @@ class Board:
 
         return False
 
-    def get_legal_walls(self, player):
+    def get_legal_walls(self):
+        """
+        Returns a list of legal walls for player 1
+        """
         legal_walls = []
-        if player == 1 and self.p1_walls <= 0:
-            return legal_walls
-        if player == 2 and self.p2_walls <= 0:
+        if self.p1_walls <= 0:
             return legal_walls
         for i in range(self.n - 1):
             for j in range(self.n - 1):
@@ -188,7 +238,7 @@ class Board:
         return legal_walls
 
     def to_array(self):
-        board_array = np.zeros((self.n, self.n, 7))
+        board_array = np.zeros((self.n, self.n, 6))
         board_array[self.p1_pos][0] = 1
         board_array[self.p2_pos][1] = 1
         for wall in self.h_walls:
@@ -197,5 +247,4 @@ class Board:
             board_array[wall][3] = 1
         board_array[:, :, 4] = self.p1_walls
         board_array[:, :, 5] = self.p2_walls
-        board_array[:, :, 6] = self.turn_count
         return board_array
