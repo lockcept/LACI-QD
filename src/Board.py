@@ -49,9 +49,9 @@ class Board:
             return ",".join(f"({a},{b})" for a, b in sorted_tuples)
 
         return (
-            str(self.p1_pos)
+            f"({self.p1_pos[0]},{self.p1_pos[1]})"
             + ":"
-            + str(self.p2_pos)
+            + f"({self.p2_pos[0]},{self.p2_pos[1]})"
             + ":"
             + format_sorted_tuple_set(self.h_walls)
             + ":"
