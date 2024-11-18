@@ -81,7 +81,7 @@ class Game:
             return -1
         return 0
 
-    def getSymmetries(self, board: Board, pi):
+    def getSymmetries(self, board: Board, pi) -> list[tuple[Board, list[float]]]:
         assert len(pi) == self.getActionSize()
 
         n = self.n

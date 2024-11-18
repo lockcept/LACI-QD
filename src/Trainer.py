@@ -3,6 +3,7 @@ import os
 import numpy as np
 from tqdm import tqdm
 
+from Game import Game
 from utils import *
 
 import torch
@@ -23,7 +24,7 @@ args = dotdict(
 
 
 class NNetWrapper:
-    def __init__(self, game):
+    def __init__(self, game: Game):
         self.nnet = NNet(game, args)
         self.board_x, self.board_y, self.board_z = game.getBoardSize()
         self.action_size = game.getActionSize()

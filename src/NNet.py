@@ -1,3 +1,4 @@
+from Game import Game
 from utils import *
 
 import torch
@@ -7,7 +8,7 @@ import torch.optim as optim
 
 
 class NNet(nn.Module):
-    def __init__(self, game, args):
+    def __init__(self, game: Game, args):
         # game params
         self.board_x, self.board_y, self.board_z = game.getBoardSize()
         self.action_size = game.getActionSize()
