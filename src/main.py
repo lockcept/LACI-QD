@@ -11,14 +11,14 @@ coloredlogs.install(level="INFO")
 
 args = dotdict(
     {
-        "gameSize": 5,
+        "gameSize": 9,
         "numIters": 100,
-        "numEps": 1,
+        "numEps": 20,
         "tempThreshold": 15,  #
-        "updateThreshold": 0.6,
+        "updateThreshold": 0.55,
         "maxlenOfQueue": 200000,
         "numMCTSSims": 25,
-        "arenaCompare": 40,
+        "arenaCompare": 20,
         "cpuct": 1,
         "checkpoint": "./temp/",
         "load_model": False,

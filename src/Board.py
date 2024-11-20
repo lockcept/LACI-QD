@@ -12,6 +12,7 @@ class Board:
         self.p2_walls = n * n // 8
         self.h_walls = set()
         self.v_walls = set()
+        self.turns = 0
 
     def get_canonical_form(self, player):
         if player == 1:
@@ -22,6 +23,7 @@ class Board:
             board.p2_walls = self.p2_walls
             board.h_walls = set([(x, y) for x, y in self.h_walls])
             board.v_walls = set([(x, y) for x, y in self.v_walls])
+            board.turns = self.turns
             return board
         else:
             board = Board(self.n)
@@ -31,6 +33,7 @@ class Board:
             board.p2_walls = self.p1_walls
             board.h_walls = set([(self.n - 2 - x, y) for x, y in self.h_walls])
             board.v_walls = set([(self.n - 2 - x, y) for x, y in self.v_walls])
+            board.turns = self.turns
             return board
 
     def get_flipped_form(self):
@@ -41,6 +44,7 @@ class Board:
         board.p2_walls = self.p2_walls
         board.h_walls = set([(x, self.n - 2 - y) for x, y in self.h_walls])
         board.v_walls = set([(x, self.n - 2 - y) for x, y in self.v_walls])
+        board.turns = self.turns
         return board
 
     def string_representation(self):
@@ -60,6 +64,8 @@ class Board:
             + str(self.p1_walls)
             + ":"
             + str(self.p2_walls)
+            + ":"
+            + str(self.turns)
         )
 
     def execute_move(self, move, player):
@@ -67,6 +73,7 @@ class Board:
             self.p1_pos = move
         else:
             self.p2_pos = move
+        self.turns += 1
 
     def place_wall(self, pos, wall_type, player):
         if wall_type == 0:
@@ -77,6 +84,7 @@ class Board:
             self.p1_walls -= 1
         else:
             self.p2_walls -= 1
+        self.turns += 1
 
     def is_win(self, player):
         if player == 1:

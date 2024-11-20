@@ -20,7 +20,7 @@ class Arena:
         curPlayer = 1
         board = self.game.getInitBoard()
         it = 0
-        while self.game.getGameEnded(board, curPlayer) == 0:
+        while self.game.getGameEnded(board, curPlayer) == None:
             it += 1
             action = players[curPlayer + 1](board.get_canonical_form(curPlayer))
             valids = self.game.getValidMoves(board.get_canonical_form(curPlayer))
@@ -37,11 +37,14 @@ class Arena:
         oneWon = 0
         twoWon = 0
         draws = 0
+        game_histories = []
+        winningCriteria = self.game.winning_criteria
         for _ in tqdm(range(num), desc="Arena.playGames (1)"):
             gameResult = self.playGame()
-            if gameResult == 1:
+            game_histories.append(gameResult)
+            if gameResult > winningCriteria:
                 oneWon += 1
-            elif gameResult == -1:
+            elif gameResult < -winningCriteria:
                 twoWon += 1
             else:
                 draws += 1
@@ -50,9 +53,10 @@ class Arena:
 
         for _ in tqdm(range(num), desc="Arena.playGames (2)"):
             gameResult = self.playGame()
-            if gameResult == -1:
+            game_histories.append(-gameResult)
+            if gameResult < -winningCriteria:
                 oneWon += 1
-            elif gameResult == 1:
+            elif gameResult > winningCriteria:
                 twoWon += 1
             else:
                 draws += 1

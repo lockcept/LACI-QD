@@ -5,6 +5,8 @@ from Board import Board
 class Game:
     def __init__(self, n: int):
         self.n = n
+        self.max_turn = n * n * 2
+        self.winning_criteria = 0.8
 
     def getInitBoard(self):
         return Board(self.n)
@@ -73,13 +75,22 @@ class Game:
         """
         board: current board
         player: current player (1 or -1)
-        return: 0 if game has not ended. 1 if player wins, -1 if player loses
+        return: None if game has not ended. return score if game has ended.
         """
+        if board.turns == self.max_turn:
+            p1_dist = self.n - 1 - board.p1_pos[0]
+            p2_dist = board.p2_pos[0]
+            p1_win_ratio = (p2_dist - p1_dist) / self.n
+            if player == 1:
+                return p1_win_ratio * self.winning_criteria
+            else:
+                return -(p1_win_ratio * self.winning_criteria)
+
         if board.is_win(player):
             return 1
         if board.is_win(-player):
             return -1
-        return 0
+        return None
 
     def getSymmetries(self, board: Board, pi) -> list[tuple[Board, list[float]]]:
         assert len(pi) == self.getActionSize()
