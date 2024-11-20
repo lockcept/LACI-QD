@@ -1,3 +1,4 @@
+import json
 import logging
 
 from tqdm import tqdm
@@ -61,8 +62,12 @@ class Arena:
             else:
                 draws += 1
 
-        # log to file
-        with open("log/arena.txt", "a") as f:
-            f.write(str(game_histories) + "\n")
+        # Round float values to 3 decimal places
+        rounded_game_histories = [round(float(x), 3) for x in game_histories]
+
+        # Save to file as pretty JSON
+        with open("logs/arena.txt", "a") as f:
+            json.dump(rounded_game_histories, f, indent=4)
+            f.write("\n")
 
         return oneWon, twoWon, draws
