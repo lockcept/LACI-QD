@@ -40,9 +40,9 @@ class NNet(nn.Module):
         self.fc4 = nn.Linear(512, 1)
 
     def forward(self, s):
-        s = s.view(
-            -1, self.board_z, self.board_x, self.board_y
-        )  # batch_size x board_z x board_x x board_y
+        s = s.permute(
+            0, 3, 1, 2
+        ).contiguous()  # batch_size x board_z x board_x x board_y
         s = F.relu(
             self.bn1(self.conv1(s))
         )  # batch_size x num_channels x board_x x board_y
