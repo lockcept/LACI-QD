@@ -61,4 +61,8 @@ class Arena:
             else:
                 draws += 1
 
+        # log to file
+        with open("log/arena.txt", "a") as f:
+            f.write(str(game_histories) + "\n")
+
         return oneWon, twoWon, draws

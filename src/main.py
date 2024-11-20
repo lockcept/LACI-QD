@@ -1,4 +1,5 @@
 import logging
+import os
 import coloredlogs
 from Coach import Coach
 from Game import Game
@@ -29,6 +30,10 @@ args = dotdict(
 
 
 def main():
+    log_path = "logs/"
+    if not os.path.exists(log_path):
+        os.mkdir(log_path)
+
     log.info("Loading %s...", Game.__name__)
     g = Game(args.gameSize)
 
