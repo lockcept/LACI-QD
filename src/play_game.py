@@ -15,7 +15,8 @@ def play_game(
     cur_player = 1
 
     while True:
-        gui.draw_board(board)
+        gui.update_board(board)
+        gui.draw_board()
 
         if game.getGameEnded(board, cur_player) != None:
             result = game.getGameEnded(board, cur_player)
@@ -33,6 +34,7 @@ def play_game(
             action = player1.play(canonical_board)
         else:
             action = player2.play(canonical_board)
+        gui.is_human_turn = False
 
         board, cur_player = game.getNextState(board, cur_player, action)
 
@@ -57,8 +59,8 @@ def main():
         "--p2",
         type=str,
         required=True,
-        choices=["human", "random", "mcts"],
-        help="Type of player 2 (human, random, mcts)",
+        choices=["random", "mcts"],
+        help="Type of player 2 (random, mcts)",
     )
     args = parser.parse_args()
 

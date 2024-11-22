@@ -36,6 +36,7 @@ class HumanPlayer(Player):
         """
         valid = self.game.getValidMoves(board)
         self.gui.selected_position = None
+        self.gui.is_human_turn = True
 
         print("Your turn! Select a position or place a wall.")
 
