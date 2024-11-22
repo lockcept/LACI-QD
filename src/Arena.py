@@ -4,13 +4,12 @@ import logging
 from tqdm import tqdm
 
 from Game import Game
-from Players import Player
 
 log = logging.getLogger(__name__)
 
 
 class Arena:
-    def __init__(self, player1: Player, player2: Player, game: Game, display=None):
+    def __init__(self, player1, player2, game: Game, display=None):
         self.player1 = player1
         self.player2 = player2
         self.game = game

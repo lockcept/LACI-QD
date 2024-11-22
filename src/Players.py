@@ -14,23 +14,22 @@ class Player:
 
 
 class RandomPlayer(Player):
-    def __init__(self, game):
+    def __init__(self, game: Game):
         Player.__init__(self, game)
         self.game = game
 
     def play(self, board):
-        valids = self.game.getValidMoves(board, 1)
+        valids = self.game.getValidMoves(board)
         valid_moves = np.nonzero(valids)[0]
         return np.random.choice(valid_moves)
 
 
-class HumanQuoridorPlayer(Player):
+class HumanPlayer(Player):
     def __init__(self, game):
         Player.__init__(self, game)
         self.game = game
 
     def play(self, board):
-        # 사용자 입력 받기
         valid = self.game.getValidMoves(board, 1)
         print(valid)
         self.game.display(board)
@@ -61,7 +60,6 @@ class MCTSPlayer(Player):
         self.mcts = mcts
 
     def play(self, board):
-        # MCTS를 사용하여 최적의 움직임을 선택
         temp = 1
         pi = self.mcts.getActionProb(board, temp=temp)
         return np.random.choice(len(pi), p=pi)
