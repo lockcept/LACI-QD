@@ -29,7 +29,6 @@ def play_game(
     gui.update_board(board)
 
     while True:
-
         if game.getGameEnded(board, cur_player) is not None:
             result = game.getGameEnded(board, cur_player)
             if result == 1:
@@ -46,6 +45,7 @@ def play_game(
             action, probabilities = player1.play(canonical_board)
         else:
             action, probabilities = player2.play(canonical_board)
+        gui.is_human_turn = False
 
         probabilities = game.get_canonical_pi(probabilities, cur_player)
 
@@ -53,6 +53,8 @@ def play_game(
 
         if probabilities is not None and delay:
             time.sleep(delay)
+            gui.update_board(board)
+            time.sleep(delay / 3)
 
         board, cur_player = game.getNextState(board, cur_player, action)
 
