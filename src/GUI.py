@@ -118,11 +118,30 @@ class GUIQuoridor:
             return "v_wall", x, y
 
     def highlight_action_probabilities(self, action_probabilities):
+        """
+        Highlights action probabilities on the canvas.
+
+        This method takes a list of action probabilities and highlights the corresponding
+        actions on the canvas with varying intensities based on the probability values.
+
+        Args:
+            action_probabilities (list of float): A list of probabilities for each action.
+
+        The method decodes each action index to determine the action type and its coordinates.
+        It then calculates the intensity of the highlight based on the probability and draws
+        the corresponding shape (rectangle) on the canvas with the appropriate color.
+
+        The color intensity is determined by the probability, with higher probabilities
+        resulting in more intense colors. The method supports three types of actions:
+        "move", "h_wall" (horizontal wall), and "v_wall" (vertical wall).
+
+        The canvas is updated after all the highlights are drawn.
+        """
 
         for idx, prob in enumerate(action_probabilities):
             if prob > 0:
                 action_type, x, y = self.decode_action(idx)
-                intensity = int(prob * 255)
+                intensity = int(prob * 127 + 128)
 
                 if action_type == "move":
                     self.canvas.create_rectangle(

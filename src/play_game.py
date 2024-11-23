@@ -11,11 +11,24 @@ from utils import dotdict
 def play_game(
     player1: Player, player2: Player, game: Game, gui: GUIQuoridor, delay=0.2
 ):
+    """
+    Simulates a game between two players using the provided game logic and GUI.
+
+    Args:
+        player1 (Player): The first player.
+        player2 (Player): The second player.
+        game (Game): The game logic handler.
+        gui (GUIQuoridor): The graphical user interface for the game.
+        delay (float, optional): The delay between moves in seconds. Defaults to 0.2.
+
+    Returns:
+        None
+    """
     board = game.getInitBoard()
     cur_player = 1
+    gui.update_board(board)
 
     while True:
-        gui.update_board(board)
 
         if game.getGameEnded(board, cur_player) is not None:
             result = game.getGameEnded(board, cur_player)
@@ -42,6 +55,8 @@ def play_game(
             time.sleep(delay)
 
         board, cur_player = game.getNextState(board, cur_player, action)
+
+        gui.update_board(board)
 
         if delay:
             time.sleep(delay)
