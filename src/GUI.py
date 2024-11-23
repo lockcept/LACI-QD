@@ -99,19 +99,16 @@ class GUIQuoridor:
             x = idx // self.board_size
             y = idx % self.board_size
             return "move", x, y
-        elif (
-            idx
-            < self.board_size * self.board_size
-            + (self.board_size - 1) * self.board_size
+        elif idx < self.board_size * self.board_size + (self.board_size - 1) * (
+            self.board_size - 1
         ):  # 수평 벽
             idx -= self.board_size * self.board_size
             x = idx // (self.board_size - 1)
             y = idx % (self.board_size - 1)
             return "h_wall", x, y
         else:
-            idx -= (
-                self.board_size * self.board_size
-                + (self.board_size - 1) * self.board_size
+            idx -= self.board_size * self.board_size + (self.board_size - 1) * (
+                self.board_size - 1
             )
             x = idx // (self.board_size - 1)
             y = idx % (self.board_size - 1)
