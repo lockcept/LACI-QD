@@ -42,12 +42,13 @@ def play_game(
         canonical_board = board.get_canonical_form(cur_player)
 
         if cur_player == 1:
-            action, probabilities = player1.play(canonical_board)
+            action, probabilities = player1.play(canonical_board, cur_player)
         else:
-            action, probabilities = player2.play(canonical_board)
+            action, probabilities = player2.play(canonical_board, cur_player)
         gui.is_human_turn = False
 
-        probabilities = game.get_canonical_pi(probabilities, cur_player)
+        if probabilities is not None:
+            probabilities = game.get_canonical_pi(probabilities, cur_player)
 
         gui.update_board(board, action_probabilities=probabilities)
 
@@ -77,8 +78,8 @@ def main():
         "--p2",
         type=str,
         required=True,
-        choices=["random", "mcts"],
-        help="Type of player 2 (random, mcts)",
+        choices=["human", "random", "mcts"],
+        help="Type of player 2 (human, random, mcts)",
     )
     args = parser.parse_args()
 
@@ -104,7 +105,7 @@ def main():
     player1 = parse_player(args.p1, game)
     player2 = parse_player(args.p2, game)
 
-    play_game(player1, player2, game, gui, delay=1)
+    play_game(player1, player2, game, gui, delay=0.3)
 
 
 if __name__ == "__main__":

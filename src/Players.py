@@ -10,7 +10,7 @@ class Player:
     def __init__(self, game: Game):
         self.game = game
 
-    def play(self, board: Board):
+    def play(self, board: Board, cur_player: int):
         pass
 
 
@@ -19,7 +19,7 @@ class RandomPlayer(Player):
         Player.__init__(self, game)
         self.game = game
 
-    def play(self, board):
+    def play(self, board, cur_player):
         valids = self.game.getValidMoves(board)
         valids = valids / np.sum(valids)
         return np.random.choice(len(valids), p=valids), valids
@@ -30,7 +30,7 @@ class HumanPlayer(Player):
         super().__init__(game)
         self.gui = gui
 
-    def play(self, board):
+    def play(self, board, cur_player):
         valid = self.game.getValidMoves(board)
         self.gui.selected_position = None
         self.gui.is_human_turn = True
@@ -45,10 +45,16 @@ class HumanPlayer(Player):
 
         # 액션 생성
         if action_type == "move":
+            if cur_player == -1:
+                x = self.game.n - 1 - x
             action = x * self.game.n + y
         elif action_type == "h_wall":
+            if cur_player == -1:
+                x = self.game.n - 2 - x
             action = self.game.n * self.game.n + x * (self.game.n - 1) + y
         elif action_type == "v_wall":
+            if cur_player == -1:
+                x = self.game.n - 2 - x
             action = (
                 self.game.n * self.game.n
                 + x * (self.game.n - 1)
@@ -57,14 +63,14 @@ class HumanPlayer(Player):
             )
         else:
             print("Invalid action type.")
-            return self.play(board)
+            return self.play(board, cur_player)
 
         # 유효성 검사
         if valid[action]:
             return action, None
         else:
             print("Invalid move, try again.")
-            return self.play(board)
+            return self.play(board, cur_player)
 
 
 class MCTSPlayer(Player):
@@ -73,7 +79,7 @@ class MCTSPlayer(Player):
         self.game = game
         self.mcts = mcts
 
-    def play(self, board):
+    def play(self, board, cur_player):
         temp = 1
         pi = self.mcts.getActionProb(board, temp=temp)
         return np.random.choice(len(pi), p=pi), pi
