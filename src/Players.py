@@ -21,8 +21,8 @@ class RandomPlayer(Player):
 
     def play(self, board):
         valids = self.game.getValidMoves(board)
-        valid_moves = np.nonzero(valids)[0]
-        return np.random.choice(valid_moves)
+        valids = valids / np.sum(valids)
+        return np.random.choice(len(valids), p=valids), valids
 
 
 class HumanPlayer(Player):
@@ -31,9 +31,6 @@ class HumanPlayer(Player):
         self.gui = gui
 
     def play(self, board):
-        """
-        GUI를 통해 사용자의 액션을 대기하고 반환합니다.
-        """
         valid = self.game.getValidMoves(board)
         self.gui.selected_position = None
         self.gui.is_human_turn = True
@@ -41,7 +38,7 @@ class HumanPlayer(Player):
         print("Your turn! Select a position or place a wall.")
 
         while self.gui.selected_position is None:
-            self.gui.root.update()  # GUI 이벤트 루프 실행
+            self.gui.root.update()
 
         action_type, x, y = self.gui.selected_position
         print(f"You selected: {action_type} at ({x}, {y})")
@@ -60,11 +57,11 @@ class HumanPlayer(Player):
             )
         else:
             print("Invalid action type.")
-            return self.play(board)  # 잘못된 입력이면 다시 요청
+            return self.play(board)
 
         # 유효성 검사
         if valid[action]:
-            return action
+            return action, None
         else:
             print("Invalid move, try again.")
             return self.play(board)
@@ -79,4 +76,4 @@ class MCTSPlayer(Player):
     def play(self, board):
         temp = 1
         pi = self.mcts.getActionProb(board, temp=temp)
-        return np.random.choice(len(pi), p=pi)
+        return np.random.choice(len(pi), p=pi), pi

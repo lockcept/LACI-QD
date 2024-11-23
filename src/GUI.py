@@ -74,9 +74,92 @@ class GUIQuoridor:
 
         self.root.update()
 
-    def update_board(self, board: Board):
+    def update_board(self, board: Board, action_probabilities=None):
         self.board = board
         self.draw_board()
+
+        if action_probabilities:
+            self.highlight_action_probabilities(action_probabilities)
+
+    def decode_action(self, idx: int) -> tuple:
+        """
+        Decodes an action index into a specific action type and its coordinates.
+
+        Args:
+            idx (int): The index of the action to decode.
+
+        Returns:
+            tuple: A tuple containing the action type as a string ("move", "h_wall", or "v_wall")
+                   and the coordinates (x, y) as integers.
+
+        Raises:
+            ValueError: If the index is out of the valid range for the board size.
+        """
+        if idx < self.board_size * self.board_size:  # 칸 이동
+            x = idx // self.board_size
+            y = idx % self.board_size
+            return "move", x, y
+        elif (
+            idx
+            < self.board_size * self.board_size
+            + (self.board_size - 1) * self.board_size
+        ):  # 수평 벽
+            idx -= self.board_size * self.board_size
+            x = idx // (self.board_size - 1)
+            y = idx % (self.board_size - 1)
+            return "h_wall", x, y
+        else:
+            idx -= (
+                self.board_size * self.board_size
+                + (self.board_size - 1) * self.board_size
+            )
+            x = idx // (self.board_size - 1)
+            y = idx % (self.board_size - 1)
+            return "v_wall", x, y
+
+    def highlight_action_probabilities(self, action_probabilities):
+
+        for idx, prob in enumerate(action_probabilities):
+            if prob > 0:
+                action_type, x, y = self.decode_action(idx)
+                intensity = int(prob * 255)
+
+                if action_type == "move":
+                    self.canvas.create_rectangle(
+                        self.margin + y * self.cell_size,
+                        self.margin + x * self.cell_size,
+                        self.margin + (y + 1) * self.cell_size,
+                        self.margin + (x + 1) * self.cell_size,
+                        fill=f"#{255-intensity:02x}{255-intensity:02x}FF",
+                        outline="",
+                    )
+                elif action_type == "h_wall":
+                    self.canvas.create_rectangle(
+                        self.margin + y * self.cell_size,
+                        self.margin
+                        + (x + 1) * self.cell_size
+                        - self.wall_thickness // 2,
+                        self.margin + (y + 2) * self.cell_size,
+                        self.margin
+                        + (x + 1) * self.cell_size
+                        + self.wall_thickness // 2,
+                        fill=f"#{255-intensity:02x}{255-intensity:02x}FF",
+                        outline="",
+                    )
+                elif action_type == "v_wall":
+                    self.canvas.create_rectangle(
+                        self.margin
+                        + (y + 1) * self.cell_size
+                        - self.wall_thickness // 2,
+                        self.margin + x * self.cell_size,
+                        self.margin
+                        + (y + 1) * self.cell_size
+                        + self.wall_thickness // 2,
+                        self.margin + (x + 2) * self.cell_size,
+                        fill=f"#{255-intensity:02x}{255-intensity:02x}FF",
+                        outline="",
+                    )
+        self.root.update()
 
     def draw_piece(self, position, color):
         x, y = position

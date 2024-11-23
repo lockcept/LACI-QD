@@ -16,9 +16,8 @@ def play_game(
 
     while True:
         gui.update_board(board)
-        gui.draw_board()
 
-        if game.getGameEnded(board, cur_player) != None:
+        if game.getGameEnded(board, cur_player) is not None:
             result = game.getGameEnded(board, cur_player)
             if result == 1:
                 print("Player 1 wins!")
@@ -31,18 +30,20 @@ def play_game(
         canonical_board = board.get_canonical_form(cur_player)
 
         if cur_player == 1:
-            action = player1.play(canonical_board)
+            action, probabilities = player1.play(canonical_board)
         else:
-            action = player2.play(canonical_board)
-        gui.is_human_turn = False
+            action, probabilities = player2.play(canonical_board)
+
+        probabilities = game.get_canonical_pi(probabilities, cur_player)
+
+        gui.update_board(board, action_probabilities=probabilities)
+
+        if probabilities is not None and delay:
+            time.sleep(delay)
 
         board, cur_player = game.getNextState(board, cur_player, action)
 
-        if (
-            delay
-            and not isinstance(player1, HumanPlayer)
-            and not isinstance(player2, HumanPlayer)
-        ):
+        if delay:
             time.sleep(delay)
 
 
@@ -86,7 +87,7 @@ def main():
     player1 = parse_player(args.p1, game)
     player2 = parse_player(args.p2, game)
 
-    play_game(player1, player2, game, gui, delay=0.2)
+    play_game(player1, player2, game, gui, delay=1)
 
 
 if __name__ == "__main__":

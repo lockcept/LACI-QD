@@ -92,6 +92,19 @@ class Game:
             return -1
         return None
 
+    def get_canonical_pi(self, pi, player) -> list[float]:
+        if player == -1:
+            n = self.n
+            pi_board = np.reshape(pi[: n * n], (n, n))
+            pi_walls = np.reshape(pi[n * n :], (2, n - 1, n - 1))
+
+            pi_board = np.flip(pi_board, axis=0)
+            pi_walls = np.flip(pi_walls, axis=1)
+
+            pi = list(pi_board.ravel()) + list(pi_walls.ravel())
+
+        return pi
+
     def getSymmetries(self, board: Board, pi) -> list[tuple[Board, list[float]]]:
         assert len(pi) == self.getActionSize()
 
