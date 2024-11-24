@@ -1,10 +1,17 @@
+"""
+This script sets up and starts the training process for a Quoridor Game AI using a neural network.
+
+Usage:
+    Run this script directly to start the training process.
+"""
+
 import logging
 import os
 import coloredlogs
 from Coach import Coach
 from Game import Game
 from Trainer import NNetWrapper as nn
-from utils import *
+from utils import dotdict
 
 log = logging.getLogger(__name__)
 
@@ -30,6 +37,9 @@ args = dotdict(
 
 
 def main():
+    """
+    Main function to initialize and start the learning process.
+    """
     log_path = "logs/"
     if not os.path.exists(log_path):
         os.mkdir(log_path)
