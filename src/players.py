@@ -1,9 +1,9 @@
 import numpy as np
 
-from Board import Board
-from GUI import GUIQuoridor
-from Game import Game
-from MCTS import MCTS
+from board import Board
+from gui import GUIQuoridor
+from game import Game
+from mcts import MCTS
 
 
 class Player:

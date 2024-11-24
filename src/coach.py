@@ -8,10 +8,10 @@ from random import shuffle
 import numpy as np
 from tqdm import tqdm
 
-from Arena import Arena
-from MCTS import MCTS
-from Game import Game
-from Trainer import NNetWrapper
+from arena import Arena
+from mcts import MCTS
+from game import Game
+from trainer import NNetWrapper
 
 log = logging.getLogger(__name__)
 

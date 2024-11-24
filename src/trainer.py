@@ -3,13 +3,13 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-from Game import Game
+from game import Game
 from utils import *
 
 import torch
 import torch.optim as optim
 
-from NNet import NNet
+from nnet import NNet
 
 args = dotdict(
     {

@@ -1,5 +1,5 @@
 import tkinter as tk
-from Board import Board
+from board import Board
 
 
 class GUIQuoridor:

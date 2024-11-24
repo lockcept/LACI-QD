@@ -3,7 +3,7 @@ import logging
 
 from tqdm import tqdm
 
-from Game import Game
+from game import Game
 
 log = logging.getLogger(__name__)
 

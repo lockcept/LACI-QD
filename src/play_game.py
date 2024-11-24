@@ -1,10 +1,10 @@
 import argparse
 import time
-from GUI import GUIQuoridor
-from Game import Game
-from Players import Player, RandomPlayer, HumanPlayer, MCTSPlayer
-from MCTS import MCTS
-from Trainer import NNetWrapper
+from gui import GUIQuoridor
+from game import Game
+from players import Player, RandomPlayer, HumanPlayer, MCTSPlayer
+from mcts import MCTS
+from trainer import NNetWrapper
 from utils import dotdict
 
 

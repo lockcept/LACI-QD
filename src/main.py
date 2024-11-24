@@ -8,9 +8,9 @@ Usage:
 import logging
 import os
 import coloredlogs
-from Coach import Coach
-from Game import Game
-from Trainer import NNetWrapper as nn
+from coach import Coach
+from game import Game
+from trainer import NNetWrapper as nn
 from utils import dotdict
 
 log = logging.getLogger(__name__)

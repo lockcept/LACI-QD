@@ -3,9 +3,9 @@ import math
 
 import numpy as np
 
-from Board import Board
-from Game import Game
-from Trainer import NNetWrapper
+from board import Board
+from game import Game
+from trainer import NNetWrapper
 
 EPS = 1e-8
 

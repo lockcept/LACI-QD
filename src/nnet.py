@@ -1,4 +1,4 @@
-from Game import Game
+from game import Game
 from utils import *
 
 import torch
