@@ -1,8 +1,18 @@
+"""
+This module defines the Board class for the game Quoridor.
+
+Classes:
+    Board: Represents the game board and handles game logic.
+"""
+
 from collections import deque
 import numpy as np
 
 
 class Board:
+    """
+    A class to represent the game board for a two-player game.
+    """
 
     def __init__(self, n):
         self.n = n
@@ -15,6 +25,16 @@ class Board:
         self.turns = 0
 
     def get_canonical_form(self, player):
+        """
+        Returns the canonical form of the board for the given player.
+
+        Args:
+            player (int): The player for whom the canonical form is to be generated.
+                          Should be either 1 or -1.
+
+        Returns:
+            Board: A new Board object representing the canonical form of the board.
+        """
         if player == 1:
             board = Board(self.n)
             board.p1_pos = self.p1_pos
@@ -37,6 +57,12 @@ class Board:
             return board
 
     def get_flipped_form(self):
+        """
+        Returns a new Board object with the positions and walls flipped vertically.
+
+        Returns:
+            Board: A new Board instance with flipped positions and walls.
+        """
         board = Board(self.n)
         board.p1_pos = (self.p1_pos[0], self.n - 1 - self.p1_pos[1])
         board.p2_pos = (self.p2_pos[0], self.n - 1 - self.p2_pos[1])
@@ -48,6 +74,13 @@ class Board:
         return board
 
     def string_representation(self):
+        """
+        Generates a string representation of the board state.
+
+        Returns:
+            str: A string representing the current state of the board
+        """
+
         def format_sorted_tuple_set(tuple_set):
             sorted_tuples = sorted(tuple_set, key=lambda x: (x[0], x[1]))
             return ",".join(f"({a},{b})" for a, b in sorted_tuples)
@@ -68,22 +101,33 @@ class Board:
             + str(self.turns)
         )
 
-    def execute_move(self, move, player):
-        if player == 1:
-            self.p1_pos = move
-        else:
-            self.p2_pos = move
+    def execute_move(self, move):
+        """
+        Executes a move for the player 1.
+
+        Parameters:
+        move (tuple): The new position to move to.
+
+        Returns:
+        None
+        """
+        self.p1_pos = move
         self.turns += 1
 
-    def place_wall(self, pos, wall_type, player):
+    def place_wall(self, pos, wall_type):
+        """
+        Places a wall on the board at the specified position for the player 1.
+
+        Args:
+            pos (tuple): The position where the wall is to be placed.
+            wall_type (int): The type of wall to place (0 for horizontal, 1 for vertical).
+        """
         if wall_type == 0:
             self.h_walls.add(pos)
         else:
             self.v_walls.add(pos)
-        if player == 1:
-            self.p1_walls -= 1
-        else:
-            self.p2_walls -= 1
+
+        self.p1_walls -= 1
         self.turns += 1
 
     def is_win(self, player):
@@ -93,7 +137,16 @@ class Board:
             return self.p2_pos[0] == 0
 
     def is_wall_between(self, pos1, pos2):
-        # 인접한 두 포지션이라고 가정
+        """
+        Determines if there is a wall between two adjacent positions on the board.
+
+        Args:
+            pos1 (tuple): The first position as a tuple (x1, y1).
+            pos2 (tuple): The second position as a tuple (x2, y2).
+
+        Returns:
+            bool: True if there is a wall between the two positions, False otherwise.
+        """
         x1, y1 = pos1
         x2, y2 = pos2
 
@@ -153,6 +206,21 @@ class Board:
         ]
 
     def is_legal_wall(self, pos, wall_type):
+        """
+        Determines if placing a wall at the given position is legal.
+
+        Args:
+            pos (tuple): The position (row, column) where the wall is to be placed.
+            wall_type (int): The type of wall to be placed. 0 for horizontal wall, 1 for vertical wall.
+
+        Returns:
+            bool: True if the wall placement is legal, False otherwise.
+
+        The function checks the following conditions:
+        1. The position is within the bounds of the board.
+        2. The wall does not overlap with existing walls of the same type or intersect with walls of the opposite type.
+        3. Both players can still reach their respective goals after placing the wall.
+        """
         if pos[0] < 0 or pos[0] >= self.n - 1 or pos[1] < 0 or pos[1] >= self.n - 1:
             return False
 
@@ -189,6 +257,18 @@ class Board:
         return True
 
     def can_reach_goal(self, start, player, h_walls, v_walls):
+        """
+        Determines if a player can reach their goal row on the board.
+
+        Args:
+            start (tuple): The starting position (x, y) of the player.
+            player (int): The player number (1 or 2). Player 1 aims for the last row, player 2 aims for the first row.
+            h_walls (set): A set of tuples representing the positions of horizontal walls.
+            v_walls (set): A set of tuples representing the positions of vertical walls.
+
+        Returns:
+            bool: True if the player can reach their goal row, False otherwise.
+        """
         goal_row = self.n - 1 if player == 1 else 0
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         queue = deque([start])
@@ -246,6 +326,12 @@ class Board:
         return legal_walls
 
     def to_array(self):
+        """
+        Converts the board state to a 3D numpy array representation.
+
+        Returns:
+            np.ndarray: A 3D numpy array representing the board state.
+        """
         board_array = np.zeros((self.n, self.n, 6))
         board_array[self.p1_pos][0] = 1
         board_array[self.p2_pos][1] = 1
