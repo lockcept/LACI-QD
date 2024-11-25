@@ -40,7 +40,7 @@ class MCTS:
         s = canonicalBoard.string_representation()
         counts = [
             self.Nsa[(s, a)] if (s, a) in self.Nsa else 0
-            for a in range(self.game.getActionSize())
+            for a in range(self.game.get_action_size())
         ]
 
         if temp == 0:
@@ -111,7 +111,7 @@ class MCTS:
         best_act = -1
 
         # pick the action with the highest upper confidence bound
-        for a in range(self.game.getActionSize()):
+        for a in range(self.game.get_action_size()):
             if valids[a]:
                 if (s, a) in self.Qsa:
                     u = self.Qsa[(s, a)] + self.args.cpuct * self.Ps[s][a] * math.sqrt(

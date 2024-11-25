@@ -1,5 +1,5 @@
 """
-A class to represent a game. It is just a wrapper for the Board class with metadata about the game.
+Game is a wrapper for the Board class with metadata.
 """
 
 import numpy as np
@@ -7,6 +7,10 @@ from board import Board
 
 
 class Game:
+    """
+    Game class to handle the Board class and game metadata.
+    """
+
     def __init__(self, n: int):
         self.n = n
         self.max_turn = n * n * 2
@@ -18,17 +22,27 @@ class Game:
         """
         return Board(self.n)
 
-    def getBoardSize(self):
+    def get_board_size(self):
+        """
+        Returns the size of the game board to learn network.
+
+        Returns:
+            tuple: A tuple containing the dimensions of the board
+        """
         return (
             self.n,
             self.n,
             6,
         )  # p1_pos, p2_pos, h_walls, v_walls, p1_walls, p2_walls
 
-    def getActionSize(self):
+    def get_action_size(self):
         """
-        all possible moves + all possible walls
+        Calculate the total number of possible actions in the game.
+
+        Returns:
+            int: The total number of possible moves and walls.
         """
+
         return self.n * self.n + (self.n - 1) * (self.n - 1) * 2
 
     def getNextState(self, board: Board, player: int, action: int):
@@ -57,9 +71,9 @@ class Game:
     def getValidMoves(self, board: Board):
         """
         board: current board
-        return: a binary vector of length self.getActionSize(), 1 for all valid moves, 0 for others
+        return: a binary vector of length self.get_action_size(), 1 for all valid moves, 0 for others
         """
-        valids = [0] * self.getActionSize()
+        valids = [0] * self.get_action_size()
 
         # Check if move is valid
         moves = board.get_legal_moves()
@@ -113,7 +127,7 @@ class Game:
         return pi
 
     def getSymmetries(self, board: Board, pi) -> list[tuple[Board, list[float]]]:
-        assert len(pi) == self.getActionSize()
+        assert len(pi) == self.get_action_size()
 
         n = self.n
         pi_board = np.reshape(pi[: n * n], (n, n))

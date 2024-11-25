@@ -26,8 +26,8 @@ args = dotdict(
 class NNetWrapper:
     def __init__(self, game: Game):
         self.nnet = NNet(game, args)
-        self.board_x, self.board_y, self.board_z = game.getBoardSize()
-        self.action_size = game.getActionSize()
+        self.board_x, self.board_y, self.board_z = game.get_board_size()
+        self.action_size = game.get_action_size()
 
         if args.cuda:
             self.nnet.cuda()

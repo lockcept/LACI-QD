@@ -10,8 +10,8 @@ import torch.optim as optim
 class NNet(nn.Module):
     def __init__(self, game: Game, args):
         # game params
-        self.board_x, self.board_y, self.board_z = game.getBoardSize()
-        self.action_size = game.getActionSize()
+        self.board_x, self.board_y, self.board_z = game.get_board_size()
+        self.action_size = game.get_action_size()
         self.args = args
 
         super(NNet, self).__init__()
