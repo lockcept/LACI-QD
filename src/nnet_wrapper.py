@@ -1,13 +1,19 @@
+"""
+This file contains the NNetWrapper class, which is a wrapper around the NNet class.
+"""
+
+import csv
 import os
 
 import numpy as np
 from tqdm import tqdm
 
-from game import Game
-from utils import *
-
 import torch
 import torch.optim as optim
+
+from game import Game
+from utils import Docdict, AverageMeter
+
 
 from nnet import NNet
 
@@ -22,8 +28,14 @@ args = Docdict(
     }
 )
 
+CSV_FILE_PATH = "logs/train.csv"
+
 
 class NNetWrapper:
+    """
+    This class is a wrapper around the NNet class.
+    """
+
     def __init__(self, game: Game):
         self.nnet = NNet(game, args)
         board_size, var_size = game.get_input_size()
@@ -33,7 +45,12 @@ class NNetWrapper:
         if args.cuda:
             self.nnet.cuda()
 
-    def train(self, examples):
+        with open(CSV_FILE_PATH, "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            if f.tell() == 0:
+                writer.writerow(["num_iter", "num_epoch", "pi_loss", "v_loss"])
+
+    def train(self, examples, num_iter):
         """
         examples: list of examples, each example is of form (board, pi, v)
         """
@@ -79,6 +96,10 @@ class NNetWrapper:
                 # Record loss
                 pi_losses.update(l_pi.item(), boards.size(0))
                 v_losses.update(l_v.item(), boards.size(0))
+
+                with open(CSV_FILE_PATH, "a", newline="", encoding="utf-8") as f:
+                    writer = csv.writer(f)
+                    writer.writerow([num_iter, epoch + 1, l_pi.item(), l_v.item()])
                 t.set_postfix(Loss_pi=pi_losses, Loss_v=v_losses)
 
                 # Compute gradient and do SGD step
@@ -108,19 +129,24 @@ class NNetWrapper:
         return torch.exp(pi).data.cpu().numpy()[0], v.data.cpu().numpy()[0]
 
     def loss_pi(self, targets, outputs):
+        """
+        Compute the loss for the policy network.
+        """
         return -torch.sum(targets * outputs) / targets.size()[0]
 
     def loss_v(self, targets, outputs):
+        """
+        Compute the loss for the value network.
+        """
         return torch.sum((targets - outputs.view(-1)) ** 2) / targets.size()[0]
 
     def save_checkpoint(self, folder="checkpoint", filename="checkpoint.pth.tar"):
+        """
+        Save the current model to a checkpoint.
+        """
         filepath = os.path.join(folder, filename)
         if not os.path.exists(folder):
-            print(
-                "Checkpoint Directory does not exist! Making directory {}".format(
-                    folder
-                )
-            )
+            print(f"Checkpoint Directory does not exist! Making directory {folder}")
             os.mkdir(folder)
         else:
             print("Checkpoint Directory exists! ")
@@ -132,10 +158,13 @@ class NNetWrapper:
         )
 
     def load_checkpoint(self, folder="checkpoint", filename="checkpoint.pth.tar"):
+        """
+        Load the model from a checkpoint.
+        """
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98
         filepath = os.path.join(folder, filename)
         if not os.path.exists(filepath):
-            raise BaseException("No model in path {}".format(filepath))
+            raise FileNotFoundError(f"No model in path {filepath}")
         map_location = None if args.cuda else "cpu"
         checkpoint = torch.load(filepath, map_location=map_location, weights_only=True)
         self.nnet.load_state_dict(checkpoint["state_dict"])

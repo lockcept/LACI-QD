@@ -107,7 +107,7 @@ class Coach:
             )
             pmcts = MCTS(self.game, self.pnet, self.args)
 
-            self.nnet.train(trainExamples)
+            self.nnet.train(trainExamples, num_iter=i)
             nmcts = MCTS(self.game, self.nnet, self.args)
 
             log.info("PITTING AGAINST PREVIOUS VERSION")
