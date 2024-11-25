@@ -17,6 +17,7 @@ class GUIQuoridor:
         self.board_size = game.n
         self.cell_size = 60
         self.wall_thickness = 10
+        self.wall_margin = 5
         self.margin = 10
         self.selected_position = None
         self.hovered_position = None
@@ -61,9 +62,9 @@ class GUIQuoridor:
         # 벽 그리기
         for wall in board.h_walls:
             x, y = wall
-            x_start = self.margin + y * self.cell_size
+            x_start = self.margin + y * self.cell_size + self.wall_margin
             y_start = self.margin + (x + 1) * self.cell_size - self.wall_thickness // 2
-            x_end = x_start + self.cell_size * 2
+            x_end = x_start + self.cell_size * 2 - self.wall_margin * 2
             y_end = y_start + self.wall_thickness
             self.canvas.create_rectangle(
                 x_start, y_start, x_end, y_end, fill="brown", outline="brown"
@@ -72,9 +73,9 @@ class GUIQuoridor:
         for wall in board.v_walls:  # 수직 벽
             x, y = wall
             x_start = self.margin + (y + 1) * self.cell_size - self.wall_thickness // 2
-            y_start = self.margin + x * self.cell_size
+            y_start = self.margin + x * self.cell_size + self.wall_margin
             x_end = x_start + self.wall_thickness
-            y_end = y_start + self.cell_size * 2  # 벽 길이 2
+            y_end = y_start + self.cell_size * 2 - self.wall_margin * 2
             self.canvas.create_rectangle(
                 x_start, y_start, x_end, y_end, fill="brown", outline="brown"
             )
@@ -147,20 +148,20 @@ class GUIQuoridor:
 
                 if action_type == "move":
                     self.canvas.create_rectangle(
-                        self.margin + y * self.cell_size,
-                        self.margin + x * self.cell_size,
-                        self.margin + (y + 1) * self.cell_size,
-                        self.margin + (x + 1) * self.cell_size,
+                        self.margin + y * self.cell_size + self.wall_margin,
+                        self.margin + x * self.cell_size + self.wall_margin,
+                        self.margin + (y + 1) * self.cell_size - self.wall_margin,
+                        self.margin + (x + 1) * self.cell_size - self.wall_margin,
                         fill=color,
                         outline="",
                     )
                 elif action_type == "h_wall":
                     self.canvas.create_rectangle(
-                        self.margin + y * self.cell_size,
+                        self.margin + y * self.cell_size + self.wall_margin,
                         self.margin
                         + (x + 1) * self.cell_size
                         - self.wall_thickness // 2,
-                        self.margin + (y + 2) * self.cell_size,
+                        self.margin + (y + 2) * self.cell_size - self.wall_margin,
                         self.margin
                         + (x + 1) * self.cell_size
                         + self.wall_thickness // 2,
@@ -172,11 +173,11 @@ class GUIQuoridor:
                         self.margin
                         + (y + 1) * self.cell_size
                         - self.wall_thickness // 2,
-                        self.margin + x * self.cell_size,
+                        self.margin + x * self.cell_size + self.wall_margin,
                         self.margin
                         + (y + 1) * self.cell_size
                         + self.wall_thickness // 2,
-                        self.margin + (x + 2) * self.cell_size,
+                        self.margin + (x + 2) * self.cell_size - self.wall_margin,
                         fill=color,
                         outline="",
                     )
@@ -206,10 +207,10 @@ class GUIQuoridor:
         action_type, x, y = hovered_position
 
         if action_type == "move":
-            x_start = self.margin + y * self.cell_size
-            y_start = self.margin + x * self.cell_size
-            x_end = x_start + self.cell_size
-            y_end = y_start + self.cell_size
+            x_start = self.margin + y * self.cell_size + self.wall_margin
+            y_start = self.margin + x * self.cell_size + self.wall_margin
+            x_end = x_start + self.cell_size - self.wall_margin * 2
+            y_end = y_start + self.cell_size - self.wall_margin * 2
             self.canvas.create_rectangle(
                 x_start,
                 y_start,
@@ -221,9 +222,9 @@ class GUIQuoridor:
                 dash=(4, 2),
             )
         elif action_type == "h_wall":
-            x_start = self.margin + y * self.cell_size
+            x_start = self.margin + y * self.cell_size + self.wall_margin
             y_start = self.margin + (x + 1) * self.cell_size - self.wall_thickness // 2
-            x_end = x_start + self.cell_size * 2
+            x_end = x_start + self.cell_size * 2 - self.wall_margin * 2
             y_end = y_start + self.wall_thickness
             self.canvas.create_rectangle(
                 x_start,
@@ -237,9 +238,9 @@ class GUIQuoridor:
             )
         elif action_type == "v_wall":
             x_start = self.margin + (y + 1) * self.cell_size - self.wall_thickness // 2
-            y_start = self.margin + x * self.cell_size
+            y_start = self.margin + x * self.cell_size + self.wall_margin
             x_end = x_start + self.wall_thickness
-            y_end = y_start + self.cell_size * 2
+            y_end = y_start + self.cell_size * 2 - self.wall_margin * 2
             self.canvas.create_rectangle(
                 x_start,
                 y_start,
