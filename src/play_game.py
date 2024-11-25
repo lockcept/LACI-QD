@@ -46,7 +46,7 @@ def play_game(
         canonical_board = board.get_canonical_form(cur_player)
 
         if cur_player == 1:
-            action, probabilities = player1.play(canonical_board)
+            action, probabilities = player1.play(canonical_board, reverse_x=False)
         else:
             action, probabilities = player2.play(canonical_board, reverse_x=True)
         gui.is_human_turn = False

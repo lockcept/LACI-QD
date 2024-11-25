@@ -250,7 +250,7 @@ class Board:
 
         return True
 
-    def get_distance_to_goal(self, player, h_walls, v_walls):
+    def get_distance_to_goal(self, player, h_walls=None, v_walls=None):
         """
         Determines the minimum distance for a player to reach their goal row on the board.
 
@@ -263,6 +263,9 @@ class Board:
         Returns:
             int: The minimum distance to the goal row if reachable, otherwise -1.
         """
+        h_walls = h_walls or self.h_walls
+        v_walls = v_walls or self.v_walls
+
         goal_row = self.n - 1 if player == 1 else 0
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         start = self.my_pos if player == 1 else self.enemy_pos

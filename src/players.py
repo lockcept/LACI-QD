@@ -34,7 +34,7 @@ class RandomPlayer(Player):
         Player.__init__(self, game)
         self.game = game
 
-    def play(self, board, _):
+    def play(self, board: Board, reverse_x: bool):
         valids = self.game.get_valid_actions(board)
         valids = valids / np.sum(valids)
         return np.random.choice(len(valids), p=valids), valids
@@ -82,14 +82,14 @@ class HumanPlayer(Player):
             )
         else:
             print("Invalid action type.")
-            return self.play(board, cur_player)
+            return self.play(board, reverse_x=reverse_x)
 
         # 유효성 검사
         if valid[action]:
             return action, None
         else:
             print("Invalid move, try again.")
-            return self.play(board, cur_player)
+            return self.play(board, reverse_x=reverse_x)
 
 
 class MCTSPlayer(Player):
@@ -102,7 +102,7 @@ class MCTSPlayer(Player):
         self.game = game
         self.mcts = mcts
 
-    def play(self, board, _):
+    def play(self, board, reverse_x):
         temp = 1
         pi = self.mcts.getActionProb(board, temp=temp)
         return np.random.choice(len(pi), p=pi), pi
@@ -117,7 +117,7 @@ class GreedyPlayer(Player):
         super().__init__(game)
         self.game = game
 
-    def play(self, board, _):
+    def play(self, board, reverse_x):
         valids = self.game.get_valid_actions(board)
         distances = []
 
@@ -125,8 +125,8 @@ class GreedyPlayer(Player):
             if is_valid:
                 next_board, _ = self.game.get_next_state(board, 1, action)
 
-                my_distance = next_board.get_distance_to_goal(next_board, 1)
-                enemy_distance = next_board.get_distance_to_goal(next_board, -1)
+                my_distance = next_board.get_distance_to_goal(1)
+                enemy_distance = next_board.get_distance_to_goal(-1)
                 distances.append((action, my_distance - enemy_distance))
 
         min_distance = min(distances, key=lambda x: x[1])[1]

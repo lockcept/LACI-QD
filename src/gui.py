@@ -78,7 +78,7 @@ class GUIQuoridor:
         self.board = board
         self.draw_board()
 
-        if action_probabilities:
+        if action_probabilities is not None:
             self.highlight_action_probabilities(action_probabilities)
 
     def decode_action(self, idx: int) -> tuple:
