@@ -20,6 +20,7 @@ class GUIQuoridor:
         self.margin = 10
         self.selected_position = None
         self.hovered_position = None
+        self.cur_player = 1
         self.is_human_turn = False
         self.root = tk.Tk()
         self.root.title("Quoridor Game")
@@ -89,14 +90,20 @@ class GUIQuoridor:
 
         self.root.update()
 
-    def update_board(self, board: Board, action_probabilities=None):
+    def update_board(self, board: Board, action_probabilities=None, player=None):
         """
         Updates the game board on the canvas.
         """
         self.board = board
         self.draw_board()
 
+        if player is not None:
+            self.cur_player = player
+
         if action_probabilities is not None:
+            action_probabilities = self.game.get_canonical_pi(
+                action_probabilities, self.cur_player
+            )
             self.highlight_action_probabilities(action_probabilities)
 
     def decode_action(self, idx: int) -> tuple:
@@ -130,7 +137,13 @@ class GUIQuoridor:
         for idx, prob in enumerate(action_probabilities):
             if prob > 0:
                 action_type, x, y = self.decode_action(idx)
-                intensity = int(prob * 127 + 128)
+                intensity = int(prob * 200 + 55)
+
+                color = (
+                    f"#FF{255-intensity:02x}{255-intensity:02x}"
+                    if self.cur_player == 1
+                    else f"#{255-intensity:02x}{255-intensity:02x}FF"
+                )
 
                 if action_type == "move":
                     self.canvas.create_rectangle(
@@ -138,7 +151,7 @@ class GUIQuoridor:
                         self.margin + x * self.cell_size,
                         self.margin + (y + 1) * self.cell_size,
                         self.margin + (x + 1) * self.cell_size,
-                        fill=f"#{255-intensity:02x}{255-intensity:02x}FF",
+                        fill=color,
                         outline="",
                     )
                 elif action_type == "h_wall":
@@ -151,7 +164,7 @@ class GUIQuoridor:
                         self.margin
                         + (x + 1) * self.cell_size
                         + self.wall_thickness // 2,
-                        fill=f"#{255-intensity:02x}{255-intensity:02x}FF",
+                        fill=color,
                         outline="",
                     )
                 elif action_type == "v_wall":
@@ -164,7 +177,7 @@ class GUIQuoridor:
                         + (y + 1) * self.cell_size
                         + self.wall_thickness // 2,
                         self.margin + (x + 2) * self.cell_size,
-                        fill=f"#{255-intensity:02x}{255-intensity:02x}FF",
+                        fill=color,
                         outline="",
                     )
         self.root.update()

@@ -51,10 +51,7 @@ def play_game(
             action, probabilities = player2.play(canonical_board, reverse_x=True)
         gui.is_human_turn = False
 
-        if probabilities is not None:
-            probabilities = game.get_canonical_pi(probabilities, cur_player)
-
-        gui.update_board(board, action_probabilities=probabilities)
+        gui.update_board(board, action_probabilities=probabilities, player=cur_player)
 
         if probabilities is not None and delay:
             time.sleep(delay)

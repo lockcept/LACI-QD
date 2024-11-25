@@ -54,13 +54,10 @@ class HumanPlayer(Player):
         self.gui.selected_position = None
         self.gui.is_human_turn = True
 
-        print("Your turn! Select a position or place a wall.")
-
         while self.gui.selected_position is None:
             self.gui.root.update()
 
         action_type, x, y = self.gui.selected_position
-        print(f"You selected: {action_type} at ({x}, {y})")
 
         # 액션 생성
         if action_type == "move":
