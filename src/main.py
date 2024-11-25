@@ -10,7 +10,7 @@ import os
 import coloredlogs
 from coach import Coach
 from game import Game
-from trainer import NNetWrapper as nn
+from nnet_wrapper import NNetWrapper as nn
 from utils import Docdict
 
 log = logging.getLogger(__name__)

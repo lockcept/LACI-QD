@@ -22,18 +22,17 @@ class Game:
         """
         return Board(self.n)
 
-    def get_board_size(self):
+    def get_input_size(self):
         """
         Returns the size of the game board to learn network.
 
         Returns:
             tuple: A tuple containing the dimensions of the board
         """
-        return (
-            self.n,
-            self.n,
-            6,
-        )  # my_pos, enemy_pos, h_walls, v_walls, my_walls, enemy_walls
+        size_with_wall = self.n * 2 - 1
+        board_size = (3, size_with_wall, size_with_wall)  # my_pos, enemy_pos, walls
+        var_size = 2  # my_walls, enemy_walls
+        return board_size, var_size
 
     def get_action_size(self):
         """
@@ -164,3 +163,31 @@ class Game:
         symmetries.append((board_lr, pi_lr))
 
         return symmetries
+
+    def board_to_input(self, board: Board):
+        """
+        Convert the board state to a format that can be used as input to the neural network.
+        """
+        board_size, var_size = self.get_input_size()
+
+        board_array = np.zeros(board_size)
+        my_x, my_y = board.my_pos
+        board_array[0, my_x * 2, my_y * 2] = 1
+        enemy_x, enemy_y = board.enemy_pos
+        board_array[1, enemy_x * 2, enemy_y * 2] = 1
+
+        for x, y in board.h_walls:
+            board_array[2, x * 2 + 1, y * 2] = 1
+            board_array[2, x * 2 + 1, y * 2 + 1] = 1
+            board_array[2, x * 2 + 1, y * 2 + 2] = 1
+
+        for x, y in board.v_walls:
+            board_array[2, x * 2, y * 2 + 1] = 1
+            board_array[2, x * 2 + 1, y * 2 + 1] = 1
+            board_array[2, x * 2 + 2, y * 2 + 1] = 1
+
+        var_array = np.zeros(var_size)
+        var_array[0] = board.my_walls
+        var_array[1] = board.enemy_walls
+
+        return (board_array, var_array)

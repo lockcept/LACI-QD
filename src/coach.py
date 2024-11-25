@@ -11,7 +11,7 @@ from tqdm import tqdm
 from arena import Arena
 from mcts import MCTS
 from game import Game
-from trainer import NNetWrapper
+from nnet_wrapper import NNetWrapper
 
 log = logging.getLogger(__name__)
 
@@ -41,7 +41,9 @@ class Coach:
             pi = self.mcts.getActionProb(canonicalBoard, temp=temp)
             sym = self.game.get_symmetries(canonicalBoard, pi)
             for b, p in sym:
-                trainExamples.append([b.to_array(), self.curPlayer, p, None])
+                trainExamples.append(
+                    [self.game.board_to_input(b), self.curPlayer, p, None]
+                )
 
             action = np.random.choice(len(pi), p=pi)
             board, self.curPlayer = self.game.get_next_state(

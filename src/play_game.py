@@ -8,7 +8,7 @@ from gui import GUIQuoridor
 from game import Game
 from players import GreedyPlayer, Player, RandomPlayer, HumanPlayer, MCTSPlayer
 from mcts import MCTS
-from trainer import NNetWrapper
+from nnet_wrapper import NNetWrapper
 from utils import Docdict
 
 
@@ -98,7 +98,7 @@ def main():
             return RandomPlayer(game)
         elif player_arg == "mcts":
             nnet = NNetWrapper(game)
-            nnet.load_checkpoint("./temp", "best.pth.tar")
+            nnet.load_checkpoint("./models", "best.pth.tar")
             mcts = MCTS(
                 game=game, nnet=nnet, args=Docdict({"numMCTSSims": 25, "cpuct": 1.0})
             )

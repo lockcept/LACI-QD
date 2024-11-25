@@ -327,24 +327,6 @@ class Board:
                     legal_walls.append((i, j, "v"))
         return legal_walls
 
-    def to_array(self):
-        """
-        Converts the board state to a 3D numpy array representation.
-
-        Returns:
-            np.ndarray: A 3D numpy array representing the board state.
-        """
-        board_array = np.zeros((self.n, self.n, 6))
-        board_array[self.my_pos][0] = 1
-        board_array[self.enemy_pos][1] = 1
-        for wall in self.h_walls:
-            board_array[wall][2] = 1
-        for wall in self.v_walls:
-            board_array[wall][3] = 1
-        board_array[:, :, 4] = self.my_walls
-        board_array[:, :, 5] = self.enemy_walls
-        return board_array
-
     def display(self):
         """
         Displays the current state of the board.

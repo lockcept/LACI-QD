@@ -5,7 +5,7 @@ import numpy as np
 
 from board import Board
 from game import Game
-from trainer import NNetWrapper
+from nnet_wrapper import NNetWrapper
 
 EPS = 1e-8
 
@@ -86,7 +86,7 @@ class MCTS:
 
         if s not in self.Ps:
             # leaf node
-            self.Ps[s], v = self.nnet.predict(canonicalBoard.to_array())
+            self.Ps[s], v = self.nnet.predict(self.game.board_to_input(canonicalBoard))
             valids = self.game.get_valid_actions(canonicalBoard)
             self.Ps[s] = self.Ps[s] * valids  # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])

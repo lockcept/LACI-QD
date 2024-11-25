@@ -26,8 +26,9 @@ args = Docdict(
 class NNetWrapper:
     def __init__(self, game: Game):
         self.nnet = NNet(game, args)
-        self.board_x, self.board_y, self.board_z = game.get_board_size()
-        self.action_size = game.get_action_size()
+        board_size, var_size = game.get_input_size()
+        self.board_x, self.board_y, self.board_z = board_size
+        self.var_size = var_size
 
         if args.cuda:
             self.nnet.cuda()
@@ -78,18 +79,24 @@ class NNetWrapper:
                 total_loss.backward()
                 optimizer.step()
 
-    def predict(self, board):
+    def predict(self, data):
         """
-        board: np array with board
+        data: (board, var_list)
         """
-        # preparing input
+        board, var_list = data
         board = torch.FloatTensor(board.astype(np.float64))
+        var = torch.FloatTensor(var_list.astype(np.float64))
+
         if args.cuda:
             board = board.contiguous().cuda()
+            var = var.contiguous().cuda()
+
         board = board.view(1, self.board_x, self.board_y, self.board_z)
+        var = var.view(1, self.var_size)
+
         self.nnet.eval()
         with torch.no_grad():
-            pi, v = self.nnet(board)
+            pi, v = self.nnet((board, var))
 
         return torch.exp(pi).data.cpu().numpy()[0], v.data.cpu().numpy()[0]
 

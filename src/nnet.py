@@ -11,73 +11,94 @@ from game import Game
 
 class NNet(nn.Module):
     """
-    Neural Network for the game.
+    A Convolutional Neural Network for the game, designed to process board state
+    and predict action probabilities and state value.
     """
 
     def __init__(self, game: Game, args):
-        # game params
-        self.board_x, self.board_y, self.board_z = game.get_board_size()
+        super().__init__()
+
+        # Game parameters
+        board_size, var_size = game.get_input_size()
+        self.board_x, self.board_y, self.board_z = board_size
+        self.var_size = var_size
         self.action_size = game.get_action_size()
         self.args = args
 
-        super().__init__()
-        self.conv1 = nn.Conv2d(self.board_z, args.num_channels, 3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(
-            args.num_channels, args.num_channels, 3, stride=1, padding=1
+        # CNN for image input
+        self.conv1 = nn.Conv2d(
+            self.board_z, args.num_channels, kernel_size=5, stride=2, padding=2
         )
-        self.conv3 = nn.Conv2d(args.num_channels, args.num_channels, 3, stride=1)
-        self.conv4 = nn.Conv2d(args.num_channels, args.num_channels, 3, stride=1)
+        self.conv2 = nn.Conv2d(
+            args.num_channels, args.num_channels, kernel_size=5, stride=2, padding=2
+        )
+        self.conv3 = nn.Conv2d(
+            args.num_channels, args.num_channels, kernel_size=5, stride=2, padding=2
+        )
 
         self.bn1 = nn.BatchNorm2d(args.num_channels)
         self.bn2 = nn.BatchNorm2d(args.num_channels)
         self.bn3 = nn.BatchNorm2d(args.num_channels)
-        self.bn4 = nn.BatchNorm2d(args.num_channels)
 
-        self.fc1 = nn.Linear(
-            args.num_channels * (self.board_x - 4) * (self.board_y - 4), 1024
+        # Calculate dynamic output size after convolutions
+        final_board_x, final_board_y = self.calculate_conv_output(
+            self.board_x, self.board_y
         )
-        self.fc_bn1 = nn.BatchNorm1d(1024)
 
-        self.fc2 = nn.Linear(1024, 512)
-        self.fc_bn2 = nn.BatchNorm1d(512)
+        # Fully connected layers for image features
+        self.fc_img1 = nn.Linear(args.num_channels * final_board_x * final_board_y, 512)
+        self.fc_img2 = nn.Linear(512, 256)
 
-        self.fc3 = nn.Linear(512, self.action_size)
+        # Fully connected layers for variables
+        self.fc_var1 = nn.Linear(var_size, 64)
+        self.fc_var2 = nn.Linear(64, 64)
 
-        self.fc4 = nn.Linear(512, 1)
+        # Combined fully connected layers
+        self.fc_combined1 = nn.Linear(256 + 64, 256)
+        self.fc_combined2 = nn.Linear(256, self.action_size)
+        self.fc_value = nn.Linear(256, 1)
 
-    def forward(self, s):
+    def calculate_conv_output(self, height, width):
         """
-        Torch forward function.
+        Dynamically calculates the output size after 3 Conv2d layers.
         """
-        s = s.permute(
-            0, 3, 1, 2
-        ).contiguous()  # batch_size x board_z x board_x x board_y
-        s = F.relu(
-            self.bn1(self.conv1(s))
-        )  # batch_size x num_channels x board_x x board_y
-        s = F.relu(
-            self.bn2(self.conv2(s))
-        )  # batch_size x num_channels x board_x x board_y
-        s = F.relu(
-            self.bn3(self.conv3(s))
-        )  # batch_size x num_channels x (board_x-2) x (board_y-2)
-        s = F.relu(
-            self.bn4(self.conv4(s))
-        )  # batch_size x num_channels x (board_x-4) x (board_y-4)
-        s = s.view(-1, self.args.num_channels * (self.board_x - 4) * (self.board_y - 4))
+        for conv in [self.conv1, self.conv2, self.conv3]:
+            height = (
+                height + 2 * conv.padding[0] - conv.kernel_size[0]
+            ) // conv.stride[0] + 1
+            width = (width + 2 * conv.padding[1] - conv.kernel_size[1]) // conv.stride[
+                1
+            ] + 1
+        return height, width
 
-        s = F.dropout(
-            F.relu(self.fc_bn1(self.fc1(s))),
-            p=self.args.dropout,
-            training=self.training,
-        )  # batch_size x 1024
-        s = F.dropout(
-            F.relu(self.fc_bn2(self.fc2(s))),
-            p=self.args.dropout,
-            training=self.training,
-        )  # batch_size x 512
+    def forward(self, board, var):
+        """
+        Forward pass through the network.
+        """
+        # Process the board through CNN layers
+        x = F.relu(self.bn1(self.conv1(board)))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.bn3(self.conv3(x)))
 
-        pi = self.fc3(s)  # batch_size x action_size
-        v = self.fc4(s)  # batch_size x 1
+        # Flatten the CNN output
+        x = x.view(x.size(0), -1)
+
+        # Fully connected layers for board features
+        x = F.relu(self.fc_img1(x))
+        x = F.relu(self.fc_img2(x))
+
+        # Process the variable input through FC layers
+        y = F.relu(self.fc_var1(var))
+        y = F.relu(self.fc_var2(y))
+
+        # Combine image features and variable features
+        combined = torch.cat((x, y), dim=1)
+
+        # Fully connected layers for combined features
+        combined = F.relu(self.fc_combined1(combined))
+
+        # Output layers
+        pi = self.fc_combined2(combined)  # Action probabilities
+        v = self.fc_value(combined)  # State value
 
         return F.log_softmax(pi, dim=1), torch.tanh(v)
