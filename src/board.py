@@ -243,14 +243,14 @@ class Board:
             temp_v_walls.add(pos)
 
         if (
-            self.can_reach_goal(1, temp_h_walls, temp_v_walls) == -1
-            or self.can_reach_goal(-1, temp_h_walls, temp_v_walls) == -1
+            self.get_distance_to_goal(1, temp_h_walls, temp_v_walls) == -1
+            or self.get_distance_to_goal(-1, temp_h_walls, temp_v_walls) == -1
         ):
             return False
 
         return True
 
-    def can_reach_goal(self, player, h_walls, v_walls):
+    def get_distance_to_goal(self, player, h_walls, v_walls):
         """
         Determines the minimum distance for a player to reach their goal row on the board.
 

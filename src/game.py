@@ -98,27 +98,18 @@ class Game:
         player: current player (1 or -1)
         return: None if game has not ended. return score if game has ended.
         """
+        my_dist = board.get_distance_to_goal(player=player)
+        enemy_dist = board.get_distance_to_goal(player=-player)
+
         if board.turns == self.max_turn:
-            my_dist = self.n - 1 - board.my_pos[0]
-            enemy_dist = board.enemy_pos[0]
-            p1_win_ratio = (enemy_dist - my_dist) / self.n
-            if player == 1:
-                return p1_win_ratio * self.winning_criteria
-            else:
-                return -(p1_win_ratio * self.winning_criteria)
+            win_ratio = (enemy_dist) / (my_dist + enemy_dist)
+            return win_ratio * self.winning_criteria
 
-        if player == 1:
-            if board.my_pos[0] == self.n - 1:
-                return 1
-            if board.enemy_pos[0] == 0:
-                return -1
-        else:  # player == -1
-            if board.enemy_pos[0] == 0:
-                return 1
-            if board.my_pos[0] == self.n - 1:
-                return -1
-
-        return None  # Game has not ended
+        if my_dist == 0:
+            return 1
+        if enemy_dist == 0:
+            return -1
+        return None  # game has not ended
 
     def get_canonical_pi(self, pi, player) -> list[float]:
         """
