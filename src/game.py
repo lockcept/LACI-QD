@@ -45,7 +45,7 @@ class Game:
 
         return self.n * self.n + (self.n - 1) * (self.n - 1) * 2
 
-    def getNextState(self, board: Board, player: int, action: int):
+    def get_next_state(self, board: Board, player: int, action: int):
         """
         board: current board
         player: current player (1 or -1)
@@ -68,7 +68,7 @@ class Game:
 
         return (original_board, -player)
 
-    def getValidMoves(self, board: Board):
+    def get_valid_actions(self, board: Board):
         """
         board: current board
         return: a binary vector of length self.get_action_size(), 1 for all valid moves, 0 for others
@@ -92,7 +92,7 @@ class Game:
 
         return np.array(valids)
 
-    def getGameEnded(self, board: Board, player):
+    def get_win_status(self, board: Board, player):
         """
         board: current board
         player: current player (1 or -1)
@@ -107,13 +107,30 @@ class Game:
             else:
                 return -(p1_win_ratio * self.winning_criteria)
 
-        if board.is_win(player):
-            return 1
-        if board.is_win(-player):
-            return -1
-        return None
+        if player == 1:
+            if board.p1_pos[0] == self.n - 1:
+                return 1
+            if board.p2_pos[0] == 0:
+                return -1
+        else:  # player == -1
+            if board.p2_pos[0] == 0:
+                return 1
+            if board.p1_pos[0] == self.n - 1:
+                return -1
+
+        return None  # Game has not ended
 
     def get_canonical_pi(self, pi, player) -> list[float]:
+        """
+        Transforms the policy vector `pi` to the canonical form for the given player.
+        Args:
+            pi (list[float]): The policy vector to be transformed.
+            player (int): The player for whom the canonical form is to be generated.
+                          If player is -1, the policy vector is transformed.
+
+        Returns:
+            list[float]: The canonical form of the policy vector.
+        """
         if player == -1:
             n = self.n
             pi_board = np.reshape(pi[: n * n], (n, n))
@@ -126,7 +143,17 @@ class Game:
 
         return pi
 
-    def getSymmetries(self, board: Board, pi) -> list[tuple[Board, list[float]]]:
+    def get_symmetries(self, board: Board, pi) -> list[tuple[Board, list[float]]]:
+        """
+        Generate symmetrical versions of the board and policy vector.
+        Args:
+            board (Board): The current state of the board.
+            pi (list[float]): The policy vector, which includes action probabilities.
+
+        Returns:
+            list[tuple[Board, list[float]]]: A list of tuples, where each tuple contains
+            a symmetrical version of the board and the corresponding policy vector.
+        """
         assert len(pi) == self.get_action_size()
 
         n = self.n
@@ -146,45 +173,3 @@ class Game:
         symmetries.append((board_lr, pi_lr))
 
         return symmetries
-
-    @staticmethod
-    def display(board: Board):
-        n = board.n
-        board_size_with_wall = 2 * n - 1
-        display_board = np.full(
-            (board_size_with_wall, board_size_with_wall), " ", dtype=str
-        )
-
-        for x in range(n):
-            for y in range(n):
-                display_board[x * 2, y * 2] = "□"
-
-        display_board[board.p1_pos[0] * 2, board.p1_pos[1] * 2] = "●"
-        display_board[board.p2_pos[0] * 2, board.p2_pos[1] * 2] = "■"
-
-        for x, y in board.h_walls:
-            display_board[x * 2 + 1, y * 2] = "━"
-            display_board[x * 2 + 1, y * 2 + 1] = "━"
-            display_board[x * 2 + 1, y * 2 + 2] = "━"
-        for x, y in board.v_walls:
-            display_board[x * 2, y * 2 + 1] = "┃"
-            display_board[x * 2 + 1, y * 2 + 1] = "┃"
-            display_board[x * 2 + 2, y * 2 + 1] = "┃"
-
-        print("  ", end="")
-        for y in range(board_size_with_wall):
-            print(y % 10, end=" ")
-        print("")
-
-        for x in range(board_size_with_wall):
-            print(x % 10, end=" ")
-            for y in range(board_size_with_wall):
-                print(display_board[x, y], end=" ")
-            print("")
-        print(
-            "wall 1: ",
-            board.p1_walls,
-            ", ",
-            "wall 2: ",
-            board.p2_walls,
-        )

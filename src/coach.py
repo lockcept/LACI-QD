@@ -39,16 +39,16 @@ class Coach:
             temp = int(episodeStep < self.args.tempThreshold)
 
             pi = self.mcts.getActionProb(canonicalBoard, temp=temp)
-            sym = self.game.getSymmetries(canonicalBoard, pi)
+            sym = self.game.get_symmetries(canonicalBoard, pi)
             for b, p in sym:
                 trainExamples.append([b.to_array(), self.curPlayer, p, None])
 
             action = np.random.choice(len(pi), p=pi)
-            board, self.curPlayer = self.game.getNextState(
+            board, self.curPlayer = self.game.get_next_state(
                 board, self.curPlayer, action
             )
 
-            r = self.game.getGameEnded(board, self.curPlayer)
+            r = self.game.get_win_status(board, self.curPlayer)
 
             if r != None:
                 return [
@@ -114,7 +114,6 @@ class Coach:
                 lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
                 lambda x: np.argmax(nmcts.getActionProb(x, temp=0)),
                 self.game,
-                self.game.display,
             )
             pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
 

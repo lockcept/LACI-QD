@@ -130,12 +130,6 @@ class Board:
         self.p1_walls -= 1
         self.turns += 1
 
-    def is_win(self, player):
-        if player == 1:
-            return self.p1_pos[0] == self.n - 1
-        else:
-            return self.p2_pos[0] == 0
-
     def is_wall_between(self, pos1, pos2):
         """
         Determines if there is a wall between two adjacent positions on the board.
@@ -342,3 +336,50 @@ class Board:
         board_array[:, :, 4] = self.p1_walls
         board_array[:, :, 5] = self.p2_walls
         return board_array
+
+    def display(self):
+        """
+        Displays the current state of the board.
+
+        Returns:
+            None
+        """
+        n = self.n
+        board_size_with_wall = 2 * n - 1
+        display_board = np.full(
+            (board_size_with_wall, board_size_with_wall), " ", dtype=str
+        )
+
+        for x in range(n):
+            for y in range(n):
+                display_board[x * 2, y * 2] = "□"
+
+        display_board[self.p1_pos[0] * 2, self.p1_pos[1] * 2] = "●"
+        display_board[self.p2_pos[0] * 2, self.p2_pos[1] * 2] = "■"
+
+        for x, y in self.h_walls:
+            display_board[x * 2 + 1, y * 2] = "━"
+            display_board[x * 2 + 1, y * 2 + 1] = "━"
+            display_board[x * 2 + 1, y * 2 + 2] = "━"
+        for x, y in self.v_walls:
+            display_board[x * 2, y * 2 + 1] = "┃"
+            display_board[x * 2 + 1, y * 2 + 1] = "┃"
+            display_board[x * 2 + 2, y * 2 + 1] = "┃"
+
+        print("  ", end="")
+        for y in range(board_size_with_wall):
+            print(y % 10, end=" ")
+        print("")
+
+        for x in range(board_size_with_wall):
+            print(x % 10, end=" ")
+            for y in range(board_size_with_wall):
+                print(display_board[x, y], end=" ")
+            print("")
+        print(
+            "wall 1: ",
+            self.p1_walls,
+            ", ",
+            "wall 2: ",
+            self.p2_walls,
+        )

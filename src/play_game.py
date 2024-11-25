@@ -29,8 +29,8 @@ def play_game(
     gui.update_board(board)
 
     while True:
-        if game.getGameEnded(board, cur_player) is not None:
-            result = game.getGameEnded(board, cur_player)
+        if game.get_win_status(board, cur_player) is not None:
+            result = game.get_win_status(board, cur_player)
             if result == 1:
                 print("Player 1 wins!")
             elif result == -1:
@@ -57,7 +57,7 @@ def play_game(
             gui.update_board(board)
             time.sleep(delay / 3)
 
-        board, cur_player = game.getNextState(board, cur_player, action)
+        board, cur_player = game.get_next_state(board, cur_player, action)
 
         gui.update_board(board)
 

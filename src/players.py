@@ -20,7 +20,7 @@ class RandomPlayer(Player):
         self.game = game
 
     def play(self, board, cur_player):
-        valids = self.game.getValidMoves(board)
+        valids = self.game.get_valid_actions(board)
         valids = valids / np.sum(valids)
         return np.random.choice(len(valids), p=valids), valids
 
@@ -31,7 +31,7 @@ class HumanPlayer(Player):
         self.gui = gui
 
     def play(self, board, cur_player):
-        valid = self.game.getValidMoves(board)
+        valid = self.game.get_valid_actions(board)
         self.gui.selected_position = None
         self.gui.is_human_turn = True
 

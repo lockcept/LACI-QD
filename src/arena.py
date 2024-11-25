@@ -9,28 +9,27 @@ log = logging.getLogger(__name__)
 
 
 class Arena:
-    def __init__(self, player1, player2, game: Game, display=None):
+    def __init__(self, player1, player2, game: Game):
         self.player1 = player1
         self.player2 = player2
         self.game = game
-        self.display = display
 
     def playGame(self):
         players = [self.player2, None, self.player1]
         curPlayer = 1
         board = self.game.get_init_board()
         it = 0
-        while self.game.getGameEnded(board, curPlayer) == None:
+        while self.game.get_win_status(board, curPlayer) == None:
             it += 1
             action = players[curPlayer + 1](board.get_canonical_form(curPlayer))
-            valids = self.game.getValidMoves(board.get_canonical_form(curPlayer))
+            valids = self.game.get_valid_actions(board.get_canonical_form(curPlayer))
             if valids[action] == 0:
                 log.error(f"Action {action} is not valid!")
                 log.debug(f"valids = {valids}")
                 assert valids[action] > 0
-            board, curPlayer = self.game.getNextState(board, curPlayer, action)
+            board, curPlayer = self.game.get_next_state(board, curPlayer, action)
 
-        return curPlayer * self.game.getGameEnded(board, curPlayer)
+        return curPlayer * self.game.get_win_status(board, curPlayer)
 
     def playGames(self, num):
         num = int(num / 2)
