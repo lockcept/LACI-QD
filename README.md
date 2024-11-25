@@ -39,6 +39,30 @@ conda deactivate
 
 ## Usage
 
+### Train the MCTS Model
+
+To train the MCTS model, run the following command:
+
 ```bash
-python main.py
+python src/main.py
+```
+
+### Play the Quoridor Game
+
+To play the Quoridor game, use the following command:
+
+```bash
+python src/play_game.py --p1 [player_type] --p2 [player_type]
+```
+
+### [player_type] Options
+
+- human: Play as a human player.
+- random: A player making random moves.
+- mcts: A player powered by the MCTS model.
+
+Example:
+
+```bash
+python src/play_game.py --p1 human --p2 mcts
 ```
