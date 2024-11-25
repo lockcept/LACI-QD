@@ -4,7 +4,6 @@ Arena class to run games between two players.
 
 import csv
 import logging
-from multiprocessing import Pool, cpu_count
 from tqdm import tqdm
 
 from game import Game
@@ -62,15 +61,10 @@ class Arena:
         num = int(num / 2)
         game_args = [(False, i) for i in range(num)] + [(True, i) for i in range(num)]
 
-        # Use multiprocessing Pool to parallelize game playing
-        with Pool(processes=cpu_count() // 3) as pool:
-            results = list(
-                tqdm(
-                    pool.imap(self._play_single_game, game_args),
-                    total=num * 2,
-                    desc="Arena.playGames",
-                )
-            )
+        results = []
+        for game_arg in tqdm(game_args, total=num * 2, desc="Arena.playGames"):
+            result = self._play_single_game(game_arg)
+            results.append(result)
 
         # Process results
         player1_win = 0

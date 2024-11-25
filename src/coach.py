@@ -4,7 +4,6 @@ import sys
 from collections import deque
 from pickle import Pickler, Unpickler
 from random import shuffle
-from multiprocessing import Pool, cpu_count
 from typing import Any
 
 import numpy as np
@@ -75,7 +74,7 @@ class Coach:
             log.info(f"Starting Iter #{i} ...")
 
             # examples of the iteration
-            iterationTrainExamples = self.run_self_play_parallel()
+            iterationTrainExamples = self.run_self_play()
 
             # save the iteration examples to the history
             self.trainExamplesHistory.append(iterationTrainExamples)
@@ -136,23 +135,18 @@ class Coach:
                     folder=self.args.checkpoint, filename="best.pth.tar"
                 )
 
-    def run_self_play_parallel(self):
+    def run_self_play(self):
         """
-        Runs self-play episodes in parallel using multiprocessing.
+        Runs self-play episodes
         """
-        log.info(f"Starting {self.args.numEps} episodes of self-play in parallel.")
+        log.info(f"Starting {self.args.numEps} episodes of self-play")
         process_args = [
             (self.game, self.nnet, self.args) for _ in range(self.args.numEps)
         ]
 
-        with Pool(processes=cpu_count() // 3) as pool:
-            results = list(
-                tqdm(
-                    pool.imap(execute_episode_worker, process_args),
-                    total=self.args.numEps,
-                    desc="Self Play",
-                )
-            )
+        results = []
+        for process_args in tqdm(process_args, desc="Self Play"):
+            results.append(execute_episode_worker(process_args))
 
         # Collect and return training examples from all episodes
         iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
