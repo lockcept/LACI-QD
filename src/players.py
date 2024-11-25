@@ -1,3 +1,7 @@
+"""
+Module players
+"""
+
 import numpy as np
 
 from board import Board
@@ -7,30 +11,45 @@ from mcts import MCTS
 
 
 class Player:
+    """
+    Board player class.
+    """
+
     def __init__(self, game: Game):
         self.game = game
 
-    def play(self, board: Board, cur_player: int):
-        pass
+    def play(self, board: Board, reverse_x: bool):
+        """
+        Play a move on the board.
+        """
 
 
 class RandomPlayer(Player):
+    """
+    Handle the random player actions.
+    """
+
     def __init__(self, game: Game):
+
         Player.__init__(self, game)
         self.game = game
 
-    def play(self, board, cur_player):
+    def play(self, board, _):
         valids = self.game.get_valid_actions(board)
         valids = valids / np.sum(valids)
         return np.random.choice(len(valids), p=valids), valids
 
 
 class HumanPlayer(Player):
+    """
+    Handle the human player actions.
+    """
+
     def __init__(self, game, gui: GUIQuoridor):
         super().__init__(game)
         self.gui = gui
 
-    def play(self, board, cur_player):
+    def play(self, board, reverse_x=False):
         valid = self.game.get_valid_actions(board)
         self.gui.selected_position = None
         self.gui.is_human_turn = True
@@ -45,15 +64,15 @@ class HumanPlayer(Player):
 
         # 액션 생성
         if action_type == "move":
-            if cur_player == -1:
+            if reverse_x:
                 x = self.game.n - 1 - x
             action = x * self.game.n + y
         elif action_type == "h_wall":
-            if cur_player == -1:
+            if reverse_x:
                 x = self.game.n - 2 - x
             action = self.game.n * self.game.n + x * (self.game.n - 1) + y
         elif action_type == "v_wall":
-            if cur_player == -1:
+            if reverse_x:
                 x = self.game.n - 2 - x
             action = (
                 self.game.n * self.game.n
@@ -74,12 +93,16 @@ class HumanPlayer(Player):
 
 
 class MCTSPlayer(Player):
+    """
+    Handle the MCTS player actions.
+    """
+
     def __init__(self, game, mcts: MCTS):
         Player.__init__(self, game)
         self.game = game
         self.mcts = mcts
 
-    def play(self, board, cur_player):
+    def play(self, board, _):
         temp = 1
         pi = self.mcts.getActionProb(board, temp=temp)
         return np.random.choice(len(pi), p=pi), pi
