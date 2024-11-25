@@ -19,10 +19,6 @@ LACI-QD is an artificial intelligence project for the game Quoridor, inspired by
 To set up the environment, please follow these steps:
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/LACI-QD.git
-cd LACI-QD
-
 # Create and activate the conda environment
 conda create --name LACI python=3.10
 conda activate LACI
