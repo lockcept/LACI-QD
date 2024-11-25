@@ -1,3 +1,7 @@
+"""
+A class to represent a game. It is just a wrapper for the Board class with metadata about the game.
+"""
+
 import numpy as np
 from board import Board
 
