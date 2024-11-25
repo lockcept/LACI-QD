@@ -5,7 +5,7 @@ from game import Game
 from players import Player, RandomPlayer, HumanPlayer, MCTSPlayer
 from mcts import MCTS
 from trainer import NNetWrapper
-from utils import dotdict
+from utils import Docdict
 
 
 def play_game(
@@ -96,7 +96,7 @@ def main():
             nnet = NNetWrapper(game)
             nnet.load_checkpoint("./temp", "best.pth.tar")
             mcts = MCTS(
-                game=game, nnet=nnet, args=dotdict({"numMCTSSims": 25, "cpuct": 1.0})
+                game=game, nnet=nnet, args=Docdict({"numMCTSSims": 25, "cpuct": 1.0})
             )
             return MCTSPlayer(game, mcts)
         else:

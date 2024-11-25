@@ -11,13 +11,13 @@ import coloredlogs
 from coach import Coach
 from game import Game
 from trainer import NNetWrapper as nn
-from utils import dotdict
+from utils import Docdict
 
 log = logging.getLogger(__name__)
 
 coloredlogs.install(level="INFO")
 
-args = dotdict(
+args = Docdict(
     {
         "gameSize": 9,
         "numIters": 100,

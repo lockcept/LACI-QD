@@ -11,7 +11,7 @@ import torch.optim as optim
 
 from nnet import NNet
 
-args = dotdict(
+args = Docdict(
     {
         "lr": 0.001,
         "dropout": 0.3,

@@ -1,20 +1,26 @@
-from game import Game
-from utils import *
+"""
+Neural Network for the game.
+"""
 
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
-import torch.optim as optim
+
+from game import Game
 
 
 class NNet(nn.Module):
+    """
+    Neural Network for the game.
+    """
+
     def __init__(self, game: Game, args):
         # game params
         self.board_x, self.board_y, self.board_z = game.get_board_size()
         self.action_size = game.get_action_size()
         self.args = args
 
-        super(NNet, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(self.board_z, args.num_channels, 3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(
             args.num_channels, args.num_channels, 3, stride=1, padding=1
@@ -40,6 +46,9 @@ class NNet(nn.Module):
         self.fc4 = nn.Linear(512, 1)
 
     def forward(self, s):
+        """
+        Torch forward function.
+        """
         s = s.permute(
             0, 3, 1, 2
         ).contiguous()  # batch_size x board_z x board_x x board_y
