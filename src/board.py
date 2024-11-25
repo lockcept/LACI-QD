@@ -242,41 +242,45 @@ class Board:
         else:
             temp_v_walls.add(pos)
 
-        if not (
-            self.can_reach_goal(self.p1_pos, 1, temp_h_walls, temp_v_walls)
-            and self.can_reach_goal(self.p2_pos, 2, temp_h_walls, temp_v_walls)
+        if (
+            self.can_reach_goal(1, temp_h_walls, temp_v_walls) == -1
+            or self.can_reach_goal(-1, temp_h_walls, temp_v_walls) == -1
         ):
             return False
 
         return True
 
-    def can_reach_goal(self, start, player, h_walls, v_walls):
+    def can_reach_goal(self, player, h_walls, v_walls):
         """
-        Determines if a player can reach their goal row on the board.
+        Determines the minimum distance for a player to reach their goal row on the board.
 
         Args:
             start (tuple): The starting position (x, y) of the player.
-            player (int): The player number (1 or 2). Player 1 aims for the last row, player 2 aims for the first row.
+            player (int): The player number (1 or -1). Player 1 aims for the last row, player -1 aims for the first row.
             h_walls (set): A set of tuples representing the positions of horizontal walls.
             v_walls (set): A set of tuples representing the positions of vertical walls.
 
         Returns:
-            bool: True if the player can reach their goal row, False otherwise.
+            int: The minimum distance to the goal row if reachable, otherwise -1.
         """
         goal_row = self.n - 1 if player == 1 else 0
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        queue = deque([start])
+        start = self.p1_pos if player == 1 else self.p2_pos
+        queue = deque([(start, 0)])  # (current_position, distance)
         visited = set()
         visited.add(start)
 
         while queue:
-            x, y = queue.popleft()
+            (x, y), distance = queue.popleft()
+
+            # Check if the current position is on the goal row
             if x == goal_row:
-                return True
+                return distance
 
             for dx, dy in directions:
                 nx, ny = x + dx, y + dy
                 if 0 <= nx < self.n and 0 <= ny < self.n and (nx, ny) not in visited:
+                    # Check wall conditions
                     if (
                         (
                             dx == -1
@@ -299,10 +303,11 @@ class Board:
                             and (x, y) not in v_walls
                         )
                     ):
-                        queue.append((nx, ny))
+                        queue.append(((nx, ny), distance + 1))
                         visited.add((nx, ny))
 
-        return False
+        # If the goal row is not reachable, return -1
+        return -1
 
     def get_legal_walls(self):
         """
