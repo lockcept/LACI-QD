@@ -22,12 +22,12 @@ args = Docdict(
     {
         "gameSize": 9,
         "numIters": 100,
-        "numEps": 20,
+        "numEps": 24,
         "tempThreshold": 15,  #
         "updateThreshold": 0.55,
         "maxlenOfQueue": 200000,
         "numMCTSSims": 25,
-        "arenaCompare": 20,
+        "arenaCompare": 24,
         "cpuct": 1,
         "checkpoint": "./temp/",
         "load_model": False,
