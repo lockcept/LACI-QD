@@ -63,7 +63,7 @@ class Arena:
         game_args = [(False, i) for i in range(num)] + [(True, i) for i in range(num)]
 
         # Use multiprocessing Pool to parallelize game playing
-        with Pool(processes=cpu_count() - 3) as pool:
+        with Pool(processes=cpu_count() // 2) as pool:
             results = list(
                 tqdm(
                     pool.imap(self._play_single_game, game_args),
