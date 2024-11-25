@@ -12,7 +12,10 @@ class Game:
         self.max_turn = n * n * 2
         self.winning_criteria = 0.8
 
-    def getInitBoard(self):
+    def get_init_board(self):
+        """
+        Initializes and returns the initial game board.
+        """
         return Board(self.n)
 
     def getBoardSize(self):

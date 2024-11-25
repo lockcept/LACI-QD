@@ -24,7 +24,7 @@ def play_game(
     Returns:
         None
     """
-    board = game.getInitBoard()
+    board = game.get_init_board()
     cur_player = 1
     gui.update_board(board)
 

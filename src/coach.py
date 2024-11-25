@@ -29,7 +29,7 @@ class Coach:
 
     def executeEpisode(self):
         trainExamples = []
-        board = self.game.getInitBoard()
+        board = self.game.get_init_board()
         self.curPlayer = 1
         episodeStep = 0
 
