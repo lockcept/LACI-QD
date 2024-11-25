@@ -27,7 +27,7 @@ class NNet(nn.Module):
 
         # CNN for image input
         self.conv1 = nn.Conv2d(
-            self.board_z, args.num_channels, kernel_size=5, stride=2, padding=2
+            self.board_x, args.num_channels, kernel_size=5, stride=2, padding=2
         )
         self.conv2 = nn.Conv2d(
             args.num_channels, args.num_channels, kernel_size=5, stride=2, padding=2
@@ -42,7 +42,7 @@ class NNet(nn.Module):
 
         # Calculate dynamic output size after convolutions
         final_board_x, final_board_y = self.calculate_conv_output(
-            self.board_x, self.board_y
+            self.board_y, self.board_z
         )
 
         # Fully connected layers for image features
@@ -71,10 +71,12 @@ class NNet(nn.Module):
             ] + 1
         return height, width
 
-    def forward(self, board, var):
+    def forward(self, data):
         """
         Forward pass through the network.
         """
+        board, var = data
+
         # Process the board through CNN layers
         x = F.relu(self.bn1(self.conv1(board)))
         x = F.relu(self.bn2(self.conv2(x)))

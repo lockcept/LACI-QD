@@ -50,31 +50,38 @@ class NNetWrapper:
             t = tqdm(range(batch_count), desc="Training Net")
             for _ in t:
                 sample_ids = np.random.randint(len(examples), size=args.batch_size)
-                boards, pis, vs = list(zip(*[examples[i] for i in sample_ids]))
+                data, pis, vs = list(zip(*[examples[i] for i in sample_ids]))
+
+                boards, var_lists = zip(*data)
+
                 boards = torch.FloatTensor(np.array(boards).astype(np.float64))
+                var_lists = torch.FloatTensor(np.array(var_lists).astype(np.float64))
                 target_pis = torch.FloatTensor(np.array(pis))
                 target_vs = torch.FloatTensor(np.array(vs).astype(np.float64))
 
-                # predict
+                # Move to GPU if CUDA is enabled
                 if args.cuda:
-                    boards, target_pis, target_vs = (
+                    boards, var_lists, target_pis, target_vs = (
                         boards.contiguous().cuda(),
+                        var_lists.contiguous().cuda(),
                         target_pis.contiguous().cuda(),
                         target_vs.contiguous().cuda(),
                     )
 
-                # compute output
-                out_pi, out_v = self.nnet(boards)
+                # Compute output
+                out_pi, out_v = self.nnet(
+                    (boards, var_lists)
+                )  # Pass both boards and var_lists
                 l_pi = self.loss_pi(target_pis, out_pi)
                 l_v = self.loss_v(target_vs, out_v)
                 total_loss = l_pi + l_v
 
-                # record loss
+                # Record loss
                 pi_losses.update(l_pi.item(), boards.size(0))
                 v_losses.update(l_v.item(), boards.size(0))
                 t.set_postfix(Loss_pi=pi_losses, Loss_v=v_losses)
 
-                # compute gradient and do SGD step
+                # Compute gradient and do SGD step
                 optimizer.zero_grad()
                 total_loss.backward()
                 optimizer.step()
