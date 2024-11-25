@@ -31,4 +31,22 @@ class Docdict(dict):
     """
 
     def __getattr__(self, name):
-        return self[name]
+        try:
+            return self[name]
+        except KeyError as exc:
+            raise AttributeError(f"Attribute {name} not found") from exc
+
+    def __setattr__(self, name, value):
+        self[name] = value
+
+    def __getstate__(self):
+        """
+        Ensures compatibility with pickle during serialization.
+        """
+        return self.__dict__.copy()
+
+    def __setstate__(self, state):
+        """
+        Ensures compatibility with pickle during deserialization.
+        """
+        self.__dict__.update(state)
