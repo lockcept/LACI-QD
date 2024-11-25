@@ -64,7 +64,7 @@ class GUIQuoridor:
             )
 
         # 플레이어 말 그리기
-        player1_pos, player2_pos = board.p1_pos, board.p2_pos
+        player1_pos, player2_pos = board.my_pos, board.enemy_pos
         self.draw_piece(player1_pos, "red")
         self.draw_piece(player2_pos, "blue")
 

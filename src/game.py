@@ -33,7 +33,7 @@ class Game:
             self.n,
             self.n,
             6,
-        )  # p1_pos, p2_pos, h_walls, v_walls, p1_walls, p2_walls
+        )  # my_pos, enemy_pos, h_walls, v_walls, my_walls, enemy_walls
 
     def get_action_size(self):
         """
@@ -99,23 +99,23 @@ class Game:
         return: None if game has not ended. return score if game has ended.
         """
         if board.turns == self.max_turn:
-            p1_dist = self.n - 1 - board.p1_pos[0]
-            p2_dist = board.p2_pos[0]
-            p1_win_ratio = (p2_dist - p1_dist) / self.n
+            my_dist = self.n - 1 - board.my_pos[0]
+            enemy_dist = board.enemy_pos[0]
+            p1_win_ratio = (enemy_dist - my_dist) / self.n
             if player == 1:
                 return p1_win_ratio * self.winning_criteria
             else:
                 return -(p1_win_ratio * self.winning_criteria)
 
         if player == 1:
-            if board.p1_pos[0] == self.n - 1:
+            if board.my_pos[0] == self.n - 1:
                 return 1
-            if board.p2_pos[0] == 0:
+            if board.enemy_pos[0] == 0:
                 return -1
         else:  # player == -1
-            if board.p2_pos[0] == 0:
+            if board.enemy_pos[0] == 0:
                 return 1
-            if board.p1_pos[0] == self.n - 1:
+            if board.my_pos[0] == self.n - 1:
                 return -1
 
         return None  # Game has not ended
