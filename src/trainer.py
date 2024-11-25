@@ -123,5 +123,5 @@ class NNetWrapper:
         if not os.path.exists(filepath):
             raise BaseException("No model in path {}".format(filepath))
         map_location = None if args.cuda else "cpu"
-        checkpoint = torch.load(filepath, map_location=map_location)
+        checkpoint = torch.load(filepath, map_location=map_location, weights_only=True)
         self.nnet.load_state_dict(checkpoint["state_dict"])
