@@ -2,7 +2,7 @@ import argparse
 import time
 from gui import GUIQuoridor
 from game import Game
-from players import Player, RandomPlayer, HumanPlayer, MCTSPlayer
+from players import GreedyPlayer, Player, RandomPlayer, HumanPlayer, MCTSPlayer
 from mcts import MCTS
 from trainer import NNetWrapper
 from utils import Docdict
@@ -71,15 +71,15 @@ def main():
         "--p1",
         type=str,
         required=True,
-        choices=["human", "random", "mcts"],
-        help="Type of player 1 (human, random, mcts)",
+        choices=["human", "random", "mcts", "greedy"],
+        help="Type of player 1 (human, random, mcts, greedy)",
     )
     parser.add_argument(
         "--p2",
         type=str,
         required=True,
-        choices=["human", "random", "mcts"],
-        help="Type of player 2 (human, random, mcts)",
+        choices=["human", "random", "mcts", "greedy"],
+        help="Type of player 2 (human, random, mcts, greedy)",
     )
     args = parser.parse_args()
 
@@ -99,6 +99,8 @@ def main():
                 game=game, nnet=nnet, args=Docdict({"numMCTSSims": 25, "cpuct": 1.0})
             )
             return MCTSPlayer(game, mcts)
+        elif player_arg == "greedy":
+            return GreedyPlayer(game)
         else:
             raise ValueError(f"Invalid player type: {player_arg}")
 

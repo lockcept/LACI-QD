@@ -106,3 +106,40 @@ class MCTSPlayer(Player):
         temp = 1
         pi = self.mcts.getActionProb(board, temp=temp)
         return np.random.choice(len(pi), p=pi), pi
+
+
+class GreedyPlayer(Player):
+    """
+    Handle the greedy player actions.
+    """
+
+    def __init__(self, game: Game):
+        super().__init__(game)
+        self.game = game
+
+    def play(self, board, _):
+        valids = self.game.get_valid_actions(board)
+        distances = []
+
+        for action, is_valid in enumerate(valids):
+            if is_valid:
+                next_board, _ = self.game.get_next_state(board, 1, action)
+
+                my_distance = next_board.get_distance_to_goal(next_board, 1)
+                enemy_distance = next_board.get_distance_to_goal(next_board, -1)
+                distances.append((action, my_distance - enemy_distance))
+
+        min_distance = min(distances, key=lambda x: x[1])[1]
+
+        best_actions = [
+            action for action, distance in distances if distance == min_distance
+        ]
+
+        action_probabilities = np.zeros_like(valids, dtype=float)
+        probability = 1 / len(best_actions)
+        for action in best_actions:
+            action_probabilities[action] = probability
+
+        best_action = np.random.choice(best_actions)
+
+        return best_action, action_probabilities
