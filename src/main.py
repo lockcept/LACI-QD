@@ -6,6 +6,7 @@ Usage:
 """
 
 import logging
+import multiprocessing
 import os
 import coloredlogs
 from coach import Coach
@@ -40,6 +41,8 @@ def main():
     """
     Main function to initialize and start the learning process.
     """
+    multiprocessing.set_start_method("spawn", force=True)
+
     log_path = "logs/"
     if not os.path.exists(log_path):
         os.mkdir(log_path)
