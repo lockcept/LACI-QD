@@ -1,7 +1,7 @@
 import json
 import logging
-
 from tqdm import tqdm
+from multiprocessing import Pool, cpu_count
 
 from game import Game
 
@@ -14,8 +14,15 @@ class Arena:
         self.player2 = player2
         self.game = game
 
-    def playGame(self):
-        players = [self.player2, None, self.player1]
+    def playGame(self, swapped=False):
+        """
+        Plays a single game. If `swapped` is True, player1 and player2 are swapped.
+        """
+        players = (
+            [self.player2, None, self.player1]
+            if not swapped
+            else [self.player1, None, self.player2]
+        )
         curPlayer = 1
         board = self.game.get_init_board()
         it = 0
@@ -29,33 +36,46 @@ class Arena:
                 assert valids[action] > 0
             board, curPlayer = self.game.get_next_state(board, curPlayer, action)
 
-        return curPlayer * self.game.get_win_status(board, curPlayer)
+        result = curPlayer * self.game.get_win_status(board, curPlayer)
+        return -result if swapped else result
+
+    def _play_single_game(self, args):
+        """
+        Helper function for multiprocessing.
+        `args` contains whether to swap players and the game index.
+        """
+        swapped, _ = args
+        return self.playGame(swapped=swapped)
 
     def playGames(self, num):
+        """
+        Plays `num` games in parallel using multiprocessing.
+        """
         num = int(num / 2)
+        game_args = [(False, i) for i in range(num)] + [(True, i) for i in range(num)]
+
+        # Use multiprocessing Pool to parallelize game playing
+        with Pool(processes=cpu_count()) as pool:
+            results = list(
+                tqdm(
+                    pool.imap(self._play_single_game, game_args),
+                    total=num * 2,
+                    desc="Arena.playGames",
+                )
+            )
+
+        # Process results
         oneWon = 0
         twoWon = 0
         draws = 0
         game_histories = []
         winningCriteria = self.game.winning_criteria
-        for _ in tqdm(range(num), desc="Arena.playGames (1)"):
-            gameResult = self.playGame()
+
+        for gameResult in results:
             game_histories.append(gameResult)
             if gameResult > winningCriteria:
                 oneWon += 1
             elif gameResult < -winningCriteria:
-                twoWon += 1
-            else:
-                draws += 1
-
-        self.player1, self.player2 = self.player2, self.player1
-
-        for _ in tqdm(range(num), desc="Arena.playGames (2)"):
-            gameResult = self.playGame()
-            game_histories.append(-gameResult)
-            if gameResult < -winningCriteria:
-                oneWon += 1
-            elif gameResult > winningCriteria:
                 twoWon += 1
             else:
                 draws += 1
