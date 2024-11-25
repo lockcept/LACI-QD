@@ -1,3 +1,7 @@
+"""
+This module allows users to simulate a game of Quoridor between two players using various strategies.
+"""
+
 import argparse
 import time
 from gui import GUIQuoridor
@@ -66,6 +70,9 @@ def play_game(
 
 
 def main():
+    """
+    Main function to parse command line arguments and start a game.
+    """
     parser = argparse.ArgumentParser(description="Play a Quoridor game.")
     parser.add_argument(
         "--p1",
