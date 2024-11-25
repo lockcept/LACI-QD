@@ -43,12 +43,12 @@ class Game:
 
         if action < self.n * self.n:
             move = (action // self.n, action % self.n)
-            board.execute_move(move, 1)
+            board.execute_move(move)
         else:
             wall_type = (action - self.n * self.n) // ((self.n - 1) * (self.n - 1))
             wall_pos = (action - self.n * self.n) % ((self.n - 1) * (self.n - 1))
             wall_pos = (wall_pos // (self.n - 1), wall_pos % (self.n - 1))
-            board.place_wall(wall_pos, wall_type, 1)
+            board.place_wall(wall_pos, wall_type)
 
         original_board = board.get_canonical_form(player)
 
