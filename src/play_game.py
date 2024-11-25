@@ -114,7 +114,7 @@ def main():
     player1 = parse_player(args.p1, game)
     player2 = parse_player(args.p2, game)
 
-    play_game(player1, player2, game, gui, delay=0.3)
+    play_game(player1, player2, game, gui, delay=0.1)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,16 @@
+"""
+This module contains the GUIQuoridor class, which provides a graphical user interface for the Quoridor game.
+"""
+
 import tkinter as tk
 from board import Board
 
 
 class GUIQuoridor:
+    """
+    A graphical user interface for the Quoridor game.
+    """
+
     def __init__(self, game):
         self.game = game
         self.board = None
@@ -15,6 +23,10 @@ class GUIQuoridor:
         self.is_human_turn = False
         self.root = tk.Tk()
         self.root.title("Quoridor Game")
+
+        width = self.margin * 2 + self.cell_size * self.board_size
+        height = self.margin * 2 + self.cell_size * self.board_size
+        self.root.geometry(f"{width}x{height}+100+100")
         self.canvas = tk.Canvas(
             self.root,
             width=self.margin * 2 + self.cell_size * self.board_size,
@@ -26,6 +38,9 @@ class GUIQuoridor:
         self.canvas.bind("<Motion>", self.on_hover)
 
     def draw_board(self):
+        """
+        Draws the game board on the canvas.
+        """
         board = self.board
         self.canvas.delete("all")
 
@@ -75,6 +90,9 @@ class GUIQuoridor:
         self.root.update()
 
     def update_board(self, board: Board, action_probabilities=None):
+        """
+        Updates the game board on the canvas.
+        """
         self.board = board
         self.draw_board()
 
@@ -84,16 +102,6 @@ class GUIQuoridor:
     def decode_action(self, idx: int) -> tuple:
         """
         Decodes an action index into a specific action type and its coordinates.
-
-        Args:
-            idx (int): The index of the action to decode.
-
-        Returns:
-            tuple: A tuple containing the action type as a string ("move", "h_wall", or "v_wall")
-                   and the coordinates (x, y) as integers.
-
-        Raises:
-            ValueError: If the index is out of the valid range for the board size.
         """
         if idx < self.board_size * self.board_size:  # 칸 이동
             x = idx // self.board_size
@@ -117,22 +125,6 @@ class GUIQuoridor:
     def highlight_action_probabilities(self, action_probabilities):
         """
         Highlights action probabilities on the canvas.
-
-        This method takes a list of action probabilities and highlights the corresponding
-        actions on the canvas with varying intensities based on the probability values.
-
-        Args:
-            action_probabilities (list of float): A list of probabilities for each action.
-
-        The method decodes each action index to determine the action type and its coordinates.
-        It then calculates the intensity of the highlight based on the probability and draws
-        the corresponding shape (rectangle) on the canvas with the appropriate color.
-
-        The color intensity is determined by the probability, with higher probabilities
-        resulting in more intense colors. The method supports three types of actions:
-        "move", "h_wall" (horizontal wall), and "v_wall" (vertical wall).
-
-        The canvas is updated after all the highlights are drawn.
         """
 
         for idx, prob in enumerate(action_probabilities):
@@ -178,6 +170,9 @@ class GUIQuoridor:
         self.root.update()
 
     def draw_piece(self, position, color):
+        """
+        Draws a player piece on the canvas.
+        """
         x, y = position
         x_center = self.margin + y * self.cell_size + self.cell_size // 2
         y_center = self.margin + x * self.cell_size + self.cell_size // 2
@@ -192,6 +187,9 @@ class GUIQuoridor:
         )
 
     def highlight_hover(self, hovered_position):
+        """
+        Highlights the hovered position
+        """
         action_type, x, y = hovered_position
 
         if action_type == "move":
@@ -241,18 +239,27 @@ class GUIQuoridor:
             )
 
     def on_click(self, event):
+        """
+        Handles the click event on the canvas.
+        """
         if not self.is_human_turn:
             return
         self.hovered_position = self.calculate_position(event)
         self.selected_position = self.hovered_position
 
     def on_hover(self, event):
+        """
+        Handles the hover event on the canvas.
+        """
         if not self.is_human_turn:
             return
         self.hovered_position = self.calculate_position(event)
         self.draw_board()
 
     def calculate_position(self, event):
+        """
+        Calculates the position of the click event.
+        """
         x = (event.y - self.margin) // self.cell_size
         y = (event.x - self.margin) // self.cell_size
 
