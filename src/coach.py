@@ -116,7 +116,7 @@ class Coach:
                 lambda x: np.argmax(nmcts.getActionProb(x, temp=0)),
                 self.game,
             )
-            pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
+            pwins, nwins, draws = arena.play_games(self.args.arenaCompare, num_iter=i)
 
             log.info("NEW/PREV WINS : %d / %d ; DRAWS : %d" % (nwins, pwins, draws))
             if (
