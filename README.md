@@ -56,6 +56,7 @@ python src/play_game.py --p1 [player_type] --p2 [player_type]
 - human: Play as a human player.
 - random: A player making random moves.
 - mcts: A player powered by the MCTS model.
+- greedy: A player chooses the option that provides the most immediate benefit
 
 Example:
 
