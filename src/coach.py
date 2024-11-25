@@ -145,7 +145,7 @@ class Coach:
             (self.game, self.nnet, self.args) for _ in range(self.args.numEps)
         ]
 
-        with Pool(processes=cpu_count() // 2) as pool:
+        with Pool(processes=cpu_count() // 3) as pool:
             results = list(
                 tqdm(
                     pool.imap(execute_episode_worker, process_args),
