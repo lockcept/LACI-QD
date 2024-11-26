@@ -31,6 +31,8 @@ args = Docdict(
         "checkpoint": "./temp/",
         "load_model": False,
         "load_folder_file": ("./temp", "best.pth.tar"),
+        "load_examples": True,
+        "load_examples_file": ("./temp", "prepared.examples"),
         "numItersForTrainExamplesHistory": 20,
     }
 )
@@ -64,7 +66,7 @@ def main():
     log.info("Loading the Coach...")
     c = Coach(g, nnet, args)
 
-    if args.load_model:
+    if args.load_examples:
         log.info("Loading 'trainExamples' from file...")
         c.load_train_examples()
 

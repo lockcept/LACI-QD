@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     for i in range(20):
         print(f"Generating train examples {i+1}")
-        train_examples = generate_train_examples(g, 100)
+        train_examples = generate_train_examples(g, 50)
         train_examples_history.append(train_examples)
 
     if not os.path.exists(FOLDER):

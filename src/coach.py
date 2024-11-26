@@ -80,14 +80,16 @@ class Coach:
         only if it wins >= updateThreshold fraction of games.
         """
         for i in range(1, self.args.numIters + 1):
-            # bookkeeping
             log.info(f"Starting Iter #{i} ...")
 
-            # examples of the iteration
-            iteration_train_examples = self.run_self_play()
+            if i == 1 and self.train_examples_history is None:
+                # examples of the iteration
+                iteration_train_examples = self.run_self_play()
 
-            # save the iteration examples to the history
-            self.train_examples_history.append(iteration_train_examples)
+                # save the iteration examples to the history
+                self.train_examples_history.append(iteration_train_examples)
+            else:
+                print("Skipping self-play for the first iteration")
 
             if (
                 len(self.train_examples_history)
@@ -190,10 +192,9 @@ class Coach:
         """
         Load the trainExamples from file
         """
-        model_file = os.path.join(
-            self.args.load_folder_file[0], self.args.load_folder_file[1]
+        examples_file = os.path.join(
+            self.args.load_examples_file[0], self.args.load_examples_file[1]
         )
-        examples_file = model_file + ".examples"
         if not os.path.isfile(examples_file):
             log.warning(f'File "{examples_file}" with trainExamples not found!')
             r = input("Continue? [y|n]")
