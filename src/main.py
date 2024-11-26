@@ -21,7 +21,7 @@ args = Docdict(
     {
         "gameSize": 9,
         "numIters": 100,
-        "numEps": 40,
+        "numEps": 20,
         "tempThreshold": 15,  #
         "updateThreshold": 0.55,
         "maxlenOfQueue": 200000,

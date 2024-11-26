@@ -91,7 +91,7 @@ class Coach:
 
             if (
                 len(self.train_examples_history)
-                > self.args.numItersFortrain_examples_history
+                > self.args.numItersForTrainExamplesHistory
             ):
                 log.warning(
                     f"Removing the oldest entry in trainExamples. len(train_examples_history) = {len(self.train_examples_history)}"
