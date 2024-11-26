@@ -97,15 +97,16 @@ class NNetWrapper:
                 pi_losses.update(l_pi.item(), boards.size(0))
                 v_losses.update(l_v.item(), boards.size(0))
 
-                with open(CSV_FILE_PATH, "a", newline="", encoding="utf-8") as f:
-                    writer = csv.writer(f)
-                    writer.writerow([num_iter, epoch + 1, l_pi.item(), l_v.item()])
                 t.set_postfix(Loss_pi=pi_losses, Loss_v=v_losses)
 
                 # Compute gradient and do SGD step
                 optimizer.zero_grad()
                 total_loss.backward()
                 optimizer.step()
+
+            with open(CSV_FILE_PATH, "a", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow([num_iter, epoch + 1, pi_losses, v_losses])
 
     def predict(self, data):
         """
