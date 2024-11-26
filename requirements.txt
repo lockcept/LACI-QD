@@ -2,3 +2,5 @@ tqdm
 coloredlogs
 torch
 numpy
+pandas
+matplotlib
