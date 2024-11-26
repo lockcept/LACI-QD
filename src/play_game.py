@@ -4,6 +4,8 @@ This module allows users to simulate a game of Quoridor between two players usin
 
 import argparse
 import time
+
+from tqdm import tqdm
 from gui import GUIQuoridor
 from game import Game
 from players import (
@@ -14,9 +16,6 @@ from players import (
     HumanPlayer,
     MctsPlayer,
 )
-from mcts import MCTS
-from nnet_wrapper import NNetWrapper
-from utils import Docdict
 
 
 def play_game(
@@ -40,14 +39,14 @@ def play_game(
     gui.update_board(board)
 
     while True:
-        if game.get_win_status(board, cur_player) is not None:
-            result = game.get_win_status(board, cur_player)
+        if game.get_win_status(board, 1) is not None:
+            result = game.get_win_status(board, 1)
             if result == 1:
-                print("Player 1 wins!")
+                return 1
             elif result == -1:
-                print("Player 2 wins!")
+                return -1
             else:
-                print("It's a draw!")
+                return 0
             break
 
         canonical_board = board.get_canonical_form(cur_player)
@@ -105,14 +104,7 @@ def main():
         elif player_arg == "random":
             return RandomPlayer(game)
         elif player_arg == "mcts":
-            nnet_wrapper = NNetWrapper(game)
-            nnet_wrapper.load_checkpoint("./models", "best.pth.tar")
-            mcts = MCTS(
-                game=game,
-                pi_v_function=nnet_wrapper.get_pi_v,
-                args=Docdict({"numMCTSSims": 25, "cpuct": 1.0}),
-            )
-            return MctsPlayer(game, mcts)
+            return MctsPlayer(game)
         elif player_arg == "greedy":
             return GreedyPlayer(game)
         elif player_arg == "greedymcts":
@@ -123,7 +115,30 @@ def main():
     player1 = parse_player(args.p1, game)
     player2 = parse_player(args.p2, game)
 
-    play_game(player1, player2, game, gui, delay=0.1)
+    battle_counts = 100
+    player1_win_count = 0
+    player2_win_count = 0
+    draw_count = 0
+
+    progress_bar = tqdm(range(battle_counts), desc=f"{args.p1}_0 vs {args.p2}_0")
+
+    for i in progress_bar:
+        result = 0
+        if i % 2 == 0:
+            result = play_game(player1, player2, game, gui, delay=0)
+        else:
+            result = -play_game(player2, player1, game, gui, delay=0)
+
+        if result == 1:
+            player1_win_count += 1
+        elif result == -1:
+            player2_win_count += 1
+        else:
+            draw_count += 1
+
+        progress_bar.set_description(
+            f"{args.p1}_{player1_win_count} vs {args.p2}_{player2_win_count} | Draws: {draw_count}"
+        )
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ from board import Board
 from gui import GUIQuoridor
 from game import Game
 from mcts import MCTS
+from nnet_wrapper import NNetWrapper
 from utils import Docdict
 
 
@@ -96,10 +97,16 @@ class MctsPlayer(Player):
     Handle the MCTS player actions.
     """
 
-    def __init__(self, game, mcts: MCTS):
+    def __init__(self, game):
         Player.__init__(self, game)
         self.game = game
-        self.mcts = mcts
+        nnet_wrapper = NNetWrapper(game)
+        nnet_wrapper.load_checkpoint("./models", "best.pth.tar")
+        self.mcts = MCTS(
+            game=game,
+            pi_v_function=nnet_wrapper.get_pi_v,
+            args=Docdict({"numMCTSSims": 25, "cpuct": 1.0}),
+        )
 
     def play(self, board, reverse_x):
         temp = 1
@@ -108,8 +115,11 @@ class MctsPlayer(Player):
 
 
 def greedy_function(game: Game, board: Board):
+    """
+    return the greedy action probabilities and the score
+    """
     valids = game.get_valid_actions(board)
-    distances = []
+    scores = []
 
     for action, is_valid in enumerate(valids):
         if is_valid:
@@ -117,20 +127,19 @@ def greedy_function(game: Game, board: Board):
 
             my_distance = next_board.get_distance_to_goal(1)
             enemy_distance = next_board.get_distance_to_goal(-1)
-            distances.append((action, my_distance - enemy_distance))
+            score = -(my_distance - enemy_distance) / game.n**2
+            scores.append((action, score))
 
-    min_distance = min(distances, key=lambda x: x[1])[1]
+    max_score = max(scores, key=lambda x: x[1])[1]
 
-    best_actions = [
-        action for action, distance in distances if distance == min_distance
-    ]
+    best_actions = [action for action, score in scores if score == max_score]
 
     action_probabilities = np.zeros_like(valids, dtype=float)
     probability = 1 / len(best_actions)
     for action in best_actions:
         action_probabilities[action] = probability
 
-    return action_probabilities, min_distance
+    return action_probabilities, max_score
 
 
 class GreedyPlayer(Player):
