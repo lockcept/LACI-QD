@@ -5,6 +5,7 @@ Arena class to run games between two players.
 import csv
 import logging
 from tqdm import tqdm
+import torch.multiprocessing as mp
 
 from game import Game
 
@@ -54,17 +55,28 @@ class Arena:
         swapped, _ = args
         return self.play_game(swapped=swapped)
 
-    def play_games(self, num, num_iter):
+    def play_games(self, num, num_iter, num_processes):
         """
         Plays `num` games in parallel using multiprocessing.
         """
         num = int(num / 2)
         game_args = [(False, i) for i in range(num)] + [(True, i) for i in range(num)]
 
-        results = []
-        for game_arg in tqdm(game_args, total=num * 2, desc="Arena.playGames"):
-            result = self._play_single_game(game_arg)
-            results.append(result)
+        if num_processes == 1:
+            results = []
+            for game_arg in tqdm(game_args, total=num * 2, desc="Arena.playGames"):
+                result = self._play_single_game(game_arg)
+                results.append(result)
+        else:
+            # 멀티프로세싱 실행
+            with mp.Pool(processes=num_processes) as pool:
+                results = list(
+                    tqdm(
+                        pool.imap(self._play_single_game, game_args),
+                        total=num * 2,
+                        desc="Arena.playGames",
+                    )
+                )
 
         # Process results
         player1_win = 0

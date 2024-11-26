@@ -8,6 +8,7 @@ Usage:
 import logging
 import os
 import coloredlogs
+import torch.multiprocessing as mp
 from coach import Coach
 from game import Game
 from nnet_wrapper import NNetWrapper as nn
@@ -34,6 +35,7 @@ args = Docdict(
         "load_examples": True,
         "load_examples_file": ("./temp", "prepared.examples"),
         "numItersForTrainExamplesHistory": 20,
+        "numProcesses": 4,
     }
 )
 
@@ -75,4 +77,5 @@ def main():
 
 
 if __name__ == "__main__":
+    mp.set_start_method("spawn", force=True)
     main()

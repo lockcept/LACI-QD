@@ -2,6 +2,7 @@
 Coach module
 """
 
+from functools import partial
 import logging
 import os
 import sys
@@ -9,6 +10,7 @@ from collections import deque
 from pickle import Pickler, Unpickler
 from random import shuffle
 from typing import Any
+import torch.multiprocessing as mp
 
 import numpy as np
 from tqdm import tqdm
@@ -96,7 +98,8 @@ class Coach:
                 > self.args.numItersForTrainExamplesHistory
             ):
                 log.warning(
-                    f"Removing the oldest entry in trainExamples. len(train_examples_history) = {len(self.train_examples_history)}"
+                    f"Removing the oldest entry in trainExamples. "
+                    + f"len(train_examples_history) = {len(self.train_examples_history)}"
                 )
                 self.train_examples_history.pop(0)
 
@@ -123,11 +126,17 @@ class Coach:
 
             log.info("PITTING AGAINST PREVIOUS VERSION")
             arena = Arena(
-                lambda x: np.argmax(pmcts.get_action_prob(x, temp=0)),
-                lambda x: np.argmax(nmcts.get_action_prob(x, temp=0)),
+                partial(
+                    lambda mcts, x: np.argmax(mcts.get_action_prob(x, temp=0)), pmcts
+                ),
+                partial(
+                    lambda mcts, x: np.argmax(mcts.get_action_prob(x, temp=0)), nmcts
+                ),
                 self.game,
             )
-            pwins, nwins, draws = arena.play_games(self.args.arenaCompare, num_iter=i)
+            pwins, nwins, draws = arena.play_games(
+                self.args.arenaCompare, num_iter=i, num_processes=self.args.numProcesses
+            )
 
             log.info("NEW/PREV WINS : %d / %d ; DRAWS : %d", nwins, pwins, draws)
             if (
@@ -157,9 +166,19 @@ class Coach:
             (self.game, self.nnet_wrapper, self.args) for _ in range(self.args.numEps)
         ]
 
-        results = []
-        for process_args in tqdm(process_args, desc="Self Play"):
-            results.append(execute_episode_worker(process_args))
+        if self.args.numProcesses == 1:
+            results = []
+            for args in tqdm(process_args, desc="Self Play"):
+                results.append(execute_episode_worker(args))
+        else:
+            with mp.Pool(processes=self.args.numProcesses) as pool:
+                results = list(
+                    tqdm(
+                        pool.imap(execute_episode_worker, process_args),
+                        total=len(process_args),
+                        desc="Self Play",
+                    )
+                )
 
         # Collect and return training examples from all episodes
         iteration_train_examples = deque([], maxlen=self.args.maxlenOfQueue)
