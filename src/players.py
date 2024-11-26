@@ -2,12 +2,14 @@
 Module players
 """
 
+from functools import partial
 import numpy as np
 
 from board import Board
 from gui import GUIQuoridor
 from game import Game
 from mcts import MCTS
+from utils import Docdict
 
 
 class Player:
@@ -89,7 +91,7 @@ class HumanPlayer(Player):
             return self.play(board, reverse_x=reverse_x)
 
 
-class MCTSPlayer(Player):
+class MctsPlayer(Player):
     """
     Handle the MCTS player actions.
     """
@@ -105,6 +107,32 @@ class MCTSPlayer(Player):
         return np.random.choice(len(pi), p=pi), pi
 
 
+def greedy_function(game: Game, board: Board):
+    valids = game.get_valid_actions(board)
+    distances = []
+
+    for action, is_valid in enumerate(valids):
+        if is_valid:
+            next_board, _ = game.get_next_state(board, 1, action)
+
+            my_distance = next_board.get_distance_to_goal(1)
+            enemy_distance = next_board.get_distance_to_goal(-1)
+            distances.append((action, my_distance - enemy_distance))
+
+    min_distance = min(distances, key=lambda x: x[1])[1]
+
+    best_actions = [
+        action for action, distance in distances if distance == min_distance
+    ]
+
+    action_probabilities = np.zeros_like(valids, dtype=float)
+    probability = 1 / len(best_actions)
+    for action in best_actions:
+        action_probabilities[action] = probability
+
+    return action_probabilities, min_distance
+
+
 class GreedyPlayer(Player):
     """
     Handle the greedy player actions.
@@ -115,28 +143,28 @@ class GreedyPlayer(Player):
         self.game = game
 
     def play(self, board, reverse_x):
-        valids = self.game.get_valid_actions(board)
-        distances = []
+        action_probabilities, _ = greedy_function(self.game, board)
 
-        for action, is_valid in enumerate(valids):
-            if is_valid:
-                next_board, _ = self.game.get_next_state(board, 1, action)
-
-                my_distance = next_board.get_distance_to_goal(1)
-                enemy_distance = next_board.get_distance_to_goal(-1)
-                distances.append((action, my_distance - enemy_distance))
-
-        min_distance = min(distances, key=lambda x: x[1])[1]
-
-        best_actions = [
-            action for action, distance in distances if distance == min_distance
-        ]
-
-        action_probabilities = np.zeros_like(valids, dtype=float)
-        probability = 1 / len(best_actions)
-        for action in best_actions:
-            action_probabilities[action] = probability
-
-        best_action = np.random.choice(best_actions)
+        best_action = np.random.choice(
+            len(action_probabilities), p=action_probabilities
+        )
 
         return best_action, action_probabilities
+
+
+class GreedyMctsPlayer(Player):
+    """
+    Handle the greedy with MCTS player actions.
+    """
+
+    def __init__(self, game: Game):
+        super().__init__(game)
+        pi_v_function = partial(greedy_function, game)
+        self.mcts = MCTS(
+            game, pi_v_function, Docdict({"numMCTSSims": 25, "cpuct": 0.3})
+        )
+
+    def play(self, board, reverse_x):
+        temp = 1
+        pi = self.mcts.get_action_prob(board, temp=temp)
+        return np.random.choice(len(pi), p=pi), pi

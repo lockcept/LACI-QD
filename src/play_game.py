@@ -6,7 +6,14 @@ import argparse
 import time
 from gui import GUIQuoridor
 from game import Game
-from players import GreedyPlayer, Player, RandomPlayer, HumanPlayer, MCTSPlayer
+from players import (
+    GreedyMctsPlayer,
+    GreedyPlayer,
+    Player,
+    RandomPlayer,
+    HumanPlayer,
+    MctsPlayer,
+)
 from mcts import MCTS
 from nnet_wrapper import NNetWrapper
 from utils import Docdict
@@ -71,19 +78,20 @@ def main():
     Main function to parse command line arguments and start a game.
     """
     parser = argparse.ArgumentParser(description="Play a Quoridor game.")
+    choices = ["human", "random", "mcts", "greedy", "greedymcts"]
     parser.add_argument(
         "--p1",
         type=str,
         required=True,
-        choices=["human", "random", "mcts", "greedy"],
-        help="Type of player 1 (human, random, mcts, greedy)",
+        choices=choices,
+        help="Type of player 1",
     )
     parser.add_argument(
         "--p2",
         type=str,
         required=True,
-        choices=["human", "random", "mcts", "greedy"],
-        help="Type of player 2 (human, random, mcts, greedy)",
+        choices=choices,
+        help="Type of player 2",
     )
     args = parser.parse_args()
 
@@ -104,9 +112,11 @@ def main():
                 pi_v_function=nnet_wrapper.get_pi_v,
                 args=Docdict({"numMCTSSims": 25, "cpuct": 1.0}),
             )
-            return MCTSPlayer(game, mcts)
+            return MctsPlayer(game, mcts)
         elif player_arg == "greedy":
             return GreedyPlayer(game)
+        elif player_arg == "greedymcts":
+            return GreedyMctsPlayer(game)
         else:
             raise ValueError(f"Invalid player type: {player_arg}")
 
