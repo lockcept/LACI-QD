@@ -1,3 +1,7 @@
+"""
+Coach module
+"""
+
 import logging
 import os
 import sys
@@ -24,42 +28,46 @@ def execute_episode_worker(args: tuple[Game, NNetWrapper, Any]):
     """
     game, nnet, coach_args = args
     mcts = MCTS(game, nnet, coach_args)
-    trainExamples = []
+    train_examples = []
     board = game.get_init_board()
-    curPlayer = 1
-    episodeStep = 0
+    player = 1
+    episode_step = 0
 
     while True:
-        episodeStep += 1
-        canonicalBoard = board.get_canonical_form(curPlayer)
-        temp = int(episodeStep < coach_args.tempThreshold)
+        episode_step += 1
+        canonical_board = board.get_canonical_form(player)
+        temp = int(episode_step < coach_args.tempThreshold)
 
-        pi = mcts.getActionProb(canonicalBoard, temp=temp)
-        sym = game.get_symmetries(canonicalBoard, pi)
+        pi = mcts.get_action_prob(canonical_board, temp=temp)
+        sym = game.get_symmetries(canonical_board, pi)
         for b, p in sym:
-            trainExamples.append([game.board_to_input(b), curPlayer, p, None])
+            train_examples.append([game.board_to_input(b), player, p, None])
 
         action = np.random.choice(len(pi), p=pi)
-        board, curPlayer = game.get_next_state(board, curPlayer, action)
+        board, player = game.get_next_state(board, player, action)
 
-        r = game.get_win_status(board, curPlayer)
+        r = game.get_win_status(board, player)
 
         if r is not None:
             return [
-                (x[0], x[2], r * ((-1) ** (x[1] != curPlayer))) for x in trainExamples
+                (x[0], x[2], r * ((-1) ** (x[1] != player))) for x in train_examples
             ]
 
 
 class Coach:
+    """
+    Self play and save examples for training, and train the neural network.
+    """
+
     def __init__(self, game: Game, nnet: NNetWrapper, args):
         self.game = game
         self.nnet = nnet
         self.pnet = self.nnet.__class__(self.game)  # the competitor network
         self.args = args
         self.mcts = MCTS(self.game, self.nnet, self.args)
-        self.trainExamplesHistory = (
+        self.train_examples_history = (
             []
-        )  # history of examples from args.numItersForTrainExamplesHistory latest iterations
+        )  # history of examples from args.numItersFortrain_examples_history latest iterations
 
     def learn(self):
         """
@@ -74,28 +82,28 @@ class Coach:
             log.info(f"Starting Iter #{i} ...")
 
             # examples of the iteration
-            iterationTrainExamples = self.run_self_play()
+            iteration_train_examples = self.run_self_play()
 
             # save the iteration examples to the history
-            self.trainExamplesHistory.append(iterationTrainExamples)
+            self.train_examples_history.append(iteration_train_examples)
 
             if (
-                len(self.trainExamplesHistory)
-                > self.args.numItersForTrainExamplesHistory
+                len(self.train_examples_history)
+                > self.args.numItersFortrain_examples_history
             ):
                 log.warning(
-                    f"Removing the oldest entry in trainExamples. len(trainExamplesHistory) = {len(self.trainExamplesHistory)}"
+                    f"Removing the oldest entry in trainExamples. len(train_examples_history) = {len(self.train_examples_history)}"
                 )
-                self.trainExamplesHistory.pop(0)
+                self.train_examples_history.pop(0)
 
             # backup history to a file
-            self.saveTrainExamples(i - 1)
+            self.save_train_examples(i - 1)
 
             # shuffle examples before training
-            trainExamples = []
-            for e in self.trainExamplesHistory:
-                trainExamples.extend(e)
-            shuffle(trainExamples)
+            train_examples = []
+            for e in self.train_examples_history:
+                train_examples.extend(e)
+            shuffle(train_examples)
 
             # training new network, keeping a copy of the old one
             self.nnet.save_checkpoint(
@@ -106,18 +114,18 @@ class Coach:
             )
             pmcts = MCTS(self.game, self.pnet, self.args)
 
-            self.nnet.train(trainExamples, num_iter=i)
+            self.nnet.train(train_examples, num_iter=i)
             nmcts = MCTS(self.game, self.nnet, self.args)
 
             log.info("PITTING AGAINST PREVIOUS VERSION")
             arena = Arena(
-                lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
-                lambda x: np.argmax(nmcts.getActionProb(x, temp=0)),
+                lambda x: np.argmax(pmcts.get_action_prob(x, temp=0)),
+                lambda x: np.argmax(nmcts.get_action_prob(x, temp=0)),
                 self.game,
             )
             pwins, nwins, draws = arena.play_games(self.args.arenaCompare, num_iter=i)
 
-            log.info("NEW/PREV WINS : %d / %d ; DRAWS : %d" % (nwins, pwins, draws))
+            log.info("NEW/PREV WINS : %d / %d ; DRAWS : %d", nwins, pwins, draws)
             if (
                 pwins + nwins == 0
                 or float(nwins) / (pwins + nwins) < self.args.updateThreshold
@@ -129,7 +137,8 @@ class Coach:
             else:
                 log.info("ACCEPTING NEW MODEL")
                 self.nnet.save_checkpoint(
-                    folder=self.args.checkpoint, filename=self.getCheckpointFile(i)
+                    folder=self.args.checkpoint,
+                    filename=self.get_checkpoint_file_name(i),
                 )
                 self.nnet.save_checkpoint(
                     folder=self.args.checkpoint, filename="best.pth.tar"
@@ -149,36 +158,47 @@ class Coach:
             results.append(execute_episode_worker(process_args))
 
         # Collect and return training examples from all episodes
-        iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
+        iteration_train_examples = deque([], maxlen=self.args.maxlenOfQueue)
         for episode_examples in results:
-            iterationTrainExamples += episode_examples
+            iteration_train_examples += episode_examples
 
-        return iterationTrainExamples
+        return iteration_train_examples
 
-    def getCheckpointFile(self, iteration):
+    def get_checkpoint_file_name(self, iteration):
+        """
+        Get the name of the checkpoint file
+        """
         return "checkpoint_" + str(iteration) + ".pth.tar"
 
-    def saveTrainExamples(self, iteration):
+    def save_train_examples(self, iteration):
+        """
+        Saves the trainExamples to a file
+        """
         folder = self.args.checkpoint
         if not os.path.exists(folder):
             os.makedirs(folder)
-        filename = os.path.join(folder, self.getCheckpointFile(iteration) + ".examples")
+        filename = os.path.join(
+            folder, self.get_checkpoint_file_name(iteration) + ".examples"
+        )
         with open(filename, "wb+") as f:
-            Pickler(f).dump(self.trainExamplesHistory)
-        f.closed
+            Pickler(f).dump(self.train_examples_history)
+        f.close()
 
-    def loadTrainExamples(self):
-        modelFile = os.path.join(
+    def load_train_examples(self):
+        """
+        Load the trainExamples from file
+        """
+        model_file = os.path.join(
             self.args.load_folder_file[0], self.args.load_folder_file[1]
         )
-        examplesFile = modelFile + ".examples"
-        if not os.path.isfile(examplesFile):
-            log.warning(f'File "{examplesFile}" with trainExamples not found!')
+        examples_file = model_file + ".examples"
+        if not os.path.isfile(examples_file):
+            log.warning(f'File "{examples_file}" with trainExamples not found!')
             r = input("Continue? [y|n]")
             if r != "y":
                 sys.exit()
         else:
             log.info("File with trainExamples found. Loading it...")
-            with open(examplesFile, "rb") as f:
-                self.trainExamplesHistory = Unpickler(f).load()
+            with open(examples_file, "rb") as f:
+                self.train_examples_history = Unpickler(f).load()
             log.info("Loading done!")

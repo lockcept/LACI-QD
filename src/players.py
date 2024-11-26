@@ -101,7 +101,7 @@ class MCTSPlayer(Player):
 
     def play(self, board, reverse_x):
         temp = 1
-        pi = self.mcts.getActionProb(board, temp=temp)
+        pi = self.mcts.get_action_prob(board, temp=temp)
         return np.random.choice(len(pi), p=pi), pi
 
 

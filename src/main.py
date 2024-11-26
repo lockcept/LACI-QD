@@ -66,7 +66,7 @@ def main():
 
     if args.load_model:
         log.info("Loading 'trainExamples' from file...")
-        c.loadTrainExamples()
+        c.load_train_examples()
 
     log.info("Starting the learning process 🎉")
     c.learn()
