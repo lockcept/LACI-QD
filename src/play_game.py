@@ -105,7 +105,7 @@ def main():
     )
     parser.add_argument(
         "--gui",
-        type=bool,
+        action="store_true",
         required=False,
         default=False,
     )

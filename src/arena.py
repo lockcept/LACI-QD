@@ -71,13 +71,12 @@ class Arena:
         player2_win = 0
         draws = 0
         game_histories = []
-        winning_criteria = self.game.winning_criteria
 
         for game_result in results:
             game_histories.append(game_result)
-            if game_result > winning_criteria:
+            if game_result == 1:
                 player1_win += 1
-            elif game_result < -winning_criteria:
+            elif game_result == -1:
                 player2_win += 1
             else:
                 draws += 1

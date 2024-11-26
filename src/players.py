@@ -125,9 +125,7 @@ def greedy_function(game: Game, board: Board):
         if is_valid:
             next_board, _ = game.get_next_state(board, 1, action)
 
-            my_distance = next_board.get_distance_to_goal(1)
-            enemy_distance = next_board.get_distance_to_goal(-1)
-            score = -(my_distance - enemy_distance) / game.n**2
+            score = game.get_win_status(next_board, 1, force_finish=True)
             scores.append((action, score))
 
     max_score = max(scores, key=lambda x: x[1])[1]

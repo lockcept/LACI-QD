@@ -91,7 +91,7 @@ class Game:
 
         return np.array(valids)
 
-    def get_win_status(self, board: Board, player):
+    def get_win_status(self, board: Board, player, force_finish=False):
         """
         board: current board
         player: current player (1 or -1)
@@ -100,9 +100,22 @@ class Game:
         my_dist = board.get_distance_to_goal(player=player)
         enemy_dist = board.get_distance_to_goal(player=-player)
 
-        if board.turns == self.max_turn:
-            win_ratio = (enemy_dist - my_dist) / (enemy_dist + my_dist)
-            return win_ratio * self.winning_criteria
+        if (board.turns == self.max_turn) or force_finish:
+            distance_diff = enemy_dist - my_dist
+
+            # calculate triangular function
+            sign = np.sign(distance_diff)
+            abs_diff = abs(distance_diff)
+
+            first_term = abs_diff / self.n
+            second_term = (abs_diff - self.n) / (self.n**2 - self.n)
+
+            if first_term < 1:
+                return first_term * self.winning_criteria * sign
+            else:
+                return (
+                    self.winning_criteria + second_term * (1 - self.winning_criteria)
+                ) * sign
 
         if my_dist == 0:
             return 1
