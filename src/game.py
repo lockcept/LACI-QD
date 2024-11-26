@@ -101,7 +101,7 @@ class Game:
         enemy_dist = board.get_distance_to_goal(player=-player)
 
         if board.turns == self.max_turn:
-            win_ratio = (enemy_dist) / (my_dist + enemy_dist)
+            win_ratio = (enemy_dist - my_dist) / (enemy_dist + my_dist)
             return win_ratio * self.winning_criteria
 
         if my_dist == 0:
