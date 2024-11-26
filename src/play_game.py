@@ -97,10 +97,12 @@ def main():
         elif player_arg == "random":
             return RandomPlayer(game)
         elif player_arg == "mcts":
-            nnet = NNetWrapper(game)
-            nnet.load_checkpoint("./models", "best.pth.tar")
+            nnet_wrapper = NNetWrapper(game)
+            nnet_wrapper.load_checkpoint("./models", "best.pth.tar")
             mcts = MCTS(
-                game=game, nnet=nnet, args=Docdict({"numMCTSSims": 25, "cpuct": 1.0})
+                game=game,
+                pi_v_function=nnet_wrapper.get_pi_v,
+                args=Docdict({"numMCTSSims": 25, "cpuct": 1.0}),
             )
             return MCTSPlayer(game, mcts)
         elif player_arg == "greedy":

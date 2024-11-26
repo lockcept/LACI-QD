@@ -26,8 +26,8 @@ def execute_episode_worker(args: tuple[Game, NNetWrapper, Any]):
     Worker function for multiprocessing.
     Each worker gets its own MCTS instance to run an episode.
     """
-    game, nnet, coach_args = args
-    mcts = MCTS(game, nnet, coach_args)
+    game, nnet_wrapper, coach_args = args
+    mcts = MCTS(game, nnet_wrapper.get_pi_v, coach_args)
     train_examples = []
     board = game.get_init_board()
     player = 1
@@ -59,12 +59,14 @@ class Coach:
     Self play and save examples for training, and train the neural network.
     """
 
-    def __init__(self, game: Game, nnet: NNetWrapper, args):
+    def __init__(self, game: Game, nnet_wrapper: NNetWrapper, args):
         self.game = game
-        self.nnet = nnet
-        self.pnet = self.nnet.__class__(self.game)  # the competitor network
+        self.nnet_wrapper = nnet_wrapper
+        self.pnet_wrapper = self.nnet_wrapper.__class__(
+            self.game
+        )  # the competitor network
         self.args = args
-        self.mcts = MCTS(self.game, self.nnet, self.args)
+        self.mcts = MCTS(self.game, self.nnet_wrapper.get_pi_v, self.args)
         self.train_examples_history = (
             []
         )  # history of examples from args.numItersFortrain_examples_history latest iterations
@@ -106,16 +108,16 @@ class Coach:
             shuffle(train_examples)
 
             # training new network, keeping a copy of the old one
-            self.nnet.save_checkpoint(
+            self.nnet_wrapper.save_checkpoint(
                 folder=self.args.checkpoint, filename="temp.pth.tar"
             )
-            self.pnet.load_checkpoint(
+            self.pnet_wrapper.load_checkpoint(
                 folder=self.args.checkpoint, filename="temp.pth.tar"
             )
-            pmcts = MCTS(self.game, self.pnet, self.args)
+            pmcts = MCTS(self.game, self.pnet_wrapper.get_pi_v, self.args)
 
-            self.nnet.train(train_examples, num_iter=i)
-            nmcts = MCTS(self.game, self.nnet, self.args)
+            self.nnet_wrapper.train(train_examples, num_iter=i)
+            nmcts = MCTS(self.game, self.nnet_wrapper.get_pi_v, self.args)
 
             log.info("PITTING AGAINST PREVIOUS VERSION")
             arena = Arena(
@@ -131,16 +133,16 @@ class Coach:
                 or float(nwins) / (pwins + nwins) < self.args.updateThreshold
             ):
                 log.info("REJECTING NEW MODEL")
-                self.nnet.load_checkpoint(
+                self.nnet_wrapper.load_checkpoint(
                     folder=self.args.checkpoint, filename="temp.pth.tar"
                 )
             else:
                 log.info("ACCEPTING NEW MODEL")
-                self.nnet.save_checkpoint(
+                self.nnet_wrapper.save_checkpoint(
                     folder=self.args.checkpoint,
                     filename=self.get_checkpoint_file_name(i),
                 )
-                self.nnet.save_checkpoint(
+                self.nnet_wrapper.save_checkpoint(
                     folder=self.args.checkpoint, filename="best.pth.tar"
                 )
 
@@ -150,7 +152,7 @@ class Coach:
         """
         log.info(f"Starting {self.args.numEps} episodes of self-play")
         process_args = [
-            (self.game, self.nnet, self.args) for _ in range(self.args.numEps)
+            (self.game, self.nnet_wrapper, self.args) for _ in range(self.args.numEps)
         ]
 
         results = []

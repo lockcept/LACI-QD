@@ -11,6 +11,7 @@ from tqdm import tqdm
 import torch
 import torch.optim as optim
 
+from board import Board
 from game import Game
 from utils import Docdict, AverageMeter
 
@@ -37,6 +38,7 @@ class NNetWrapper:
     """
 
     def __init__(self, game: Game):
+        self.game = game
         self.nnet = NNet(game, args)
         board_size, var_size = game.get_input_size()
         self.board_x, self.board_y, self.board_z = board_size
@@ -169,3 +171,9 @@ class NNetWrapper:
         map_location = None if args.cuda else "cpu"
         checkpoint = torch.load(filepath, map_location=map_location, weights_only=True)
         self.nnet.load_state_dict(checkpoint["state_dict"])
+
+    def get_pi_v(self, board: Board):
+        """
+        Get the policy and value of the board.
+        """
+        return self.predict(self.game.board_to_input(board))

@@ -4,12 +4,10 @@ This module implements the Monte Carlo Tree Search (MCTS) algorithm for game pla
 
 import logging
 import math
-
 import numpy as np
 
 from board import Board
 from game import Game
-from nnet_wrapper import NNetWrapper
 
 EPS = 1e-8
 
@@ -21,14 +19,25 @@ class MCTS:
     Monte Carlo Tree Search.
     """
 
-    def __init__(self, game: Game, nnet: NNetWrapper, args):
+    def __init__(self, game: Game, pi_v_function, args):
+        """
+        Initializes the MCTS with the given game and a pi_v_function.
+
+        Args:
+            game (Game): The game for which MCTS is applied.
+            pi_v_function (function): A function that takes a board state as input
+                                      and returns (pi, v), where:
+                                      - pi: A policy vector representing action probabilities.
+                                      - v: A value representing the board state's evaluation.
+            args: Additional arguments for MCTS settings.
+        """
         self.game = game
-        self.nnet = nnet
+        self.pi_v_function = pi_v_function
         self.args = args
         self.Qsa = {}  # stores Q values for s,a (as defined in the paper)
         self.Nsa = {}  # stores #times edge s,a was visited
         self.Ns = {}  # stores #times board s was visited
-        self.Ps = {}  # stores initial policy (returned by neural net)
+        self.Ps = {}  # stores initial policy (returned by pi_v_function)
 
         self.Es = {}  # stores game.get_win_status ended for board s
         self.Vs = {}  # stores game.get_valid_actions for board s
@@ -69,7 +78,7 @@ class MCTS:
         till a leaf node is found. The action chosen at each node is one that
         has the maximum upper confidence bound as in the paper.
 
-        Once a leaf node is found, the neural network is called to return an
+        Once a leaf node is found, the pi_v_function is called to return an
         initial policy P and a value v for the state. This value is propagated
         up the search path. In case the leaf node is a terminal state, the
         outcome is propagated up the search path. The values of Ns, Nsa, Qsa are
@@ -93,17 +102,14 @@ class MCTS:
 
         if s not in self.Ps:
             # leaf node
-            self.Ps[s], v = self.nnet.predict(self.game.board_to_input(board))
+            self.Ps[s], v = self.pi_v_function(board)  # Use the passed function
             valids = self.game.get_valid_actions(board)
             self.Ps[s] = self.Ps[s] * valids  # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
             if sum_Ps_s > 0:
                 self.Ps[s] /= sum_Ps_s  # renormalize
             else:
-                # if all valid moves were masked make all valid moves equally probable
-
-                # NB! All valid moves may be masked if either your NNet architecture is insufficient or you've get overfitting or something else.
-                # If you have got dozens or hundreds of these messages you should pay attention to your NNet and/or training process.
+                # If all valid moves were masked, make all valid moves equally probable.
                 log.error("All valid moves were masked, doing a workaround.")
                 board.display()
                 self.Ps[s] = self.Ps[s] + valids
