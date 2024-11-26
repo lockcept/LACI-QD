@@ -23,6 +23,13 @@ from nnet_wrapper import NNetWrapper
 log = logging.getLogger(__name__)
 
 
+def action_function(x, mcts):
+    """
+    return the action to take given the board state x
+    """
+    return np.argmax(mcts.get_action_prob(x, temp=0))
+
+
 def execute_episode_worker(args: tuple[Game, NNetWrapper, Any]):
     """
     Worker function for multiprocessing.
@@ -126,12 +133,8 @@ class Coach:
 
             log.info("PITTING AGAINST PREVIOUS VERSION")
             arena = Arena(
-                partial(
-                    lambda mcts, x: np.argmax(mcts.get_action_prob(x, temp=0)), pmcts
-                ),
-                partial(
-                    lambda mcts, x: np.argmax(mcts.get_action_prob(x, temp=0)), nmcts
-                ),
+                partial(action_function, mcts=pmcts),
+                partial(action_function, mcts=nmcts),
                 self.game,
             )
             pwins, nwins, draws = arena.play_games(
