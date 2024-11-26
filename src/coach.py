@@ -91,7 +91,7 @@ class Coach:
         for i in range(1, self.args.numIters + 1):
             log.info(f"Starting Iter #{i} ...")
 
-            if i == 1 and self.train_examples_history is not None:
+            if i == 1 and self.train_examples_history:
                 print("Skipping self-play for the first iteration")
             else:
                 # examples of the iteration
