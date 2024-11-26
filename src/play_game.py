@@ -4,6 +4,7 @@ This module allows users to simulate a game of Quoridor between two players usin
 
 import argparse
 import time
+from typing import Optional
 
 from tqdm import tqdm
 from gui import GUIQuoridor
@@ -19,7 +20,11 @@ from players import (
 
 
 def play_game(
-    player1: Player, player2: Player, game: Game, gui: GUIQuoridor, delay=0.2
+    player1: Player,
+    player2: Player,
+    game: Game,
+    gui: Optional[GUIQuoridor] = None,
+    delay=0.2,
 ):
     """
     Simulates a game between two players using the provided game logic and GUI.
@@ -36,7 +41,9 @@ def play_game(
     """
     board = game.get_init_board()
     cur_player = 1
-    gui.update_board(board)
+
+    if gui is not None:
+        gui.update_board(board)
 
     while True:
         if game.get_win_status(board, 1) is not None:
@@ -55,9 +62,12 @@ def play_game(
             action, probabilities = player1.play(canonical_board, reverse_x=False)
         else:
             action, probabilities = player2.play(canonical_board, reverse_x=True)
-        gui.is_human_turn = False
 
-        gui.update_board(board, action_probabilities=probabilities, player=cur_player)
+        if gui is not None:
+            gui.is_human_turn = False
+            gui.update_board(
+                board, action_probabilities=probabilities, player=cur_player
+            )
 
         if probabilities is not None and delay:
             time.sleep(delay)
@@ -66,7 +76,8 @@ def play_game(
 
         board, cur_player = game.get_next_state(board, cur_player, action)
 
-        gui.update_board(board)
+        if gui is not None:
+            gui.update_board(board)
 
         if delay:
             time.sleep(delay)
@@ -92,11 +103,17 @@ def main():
         choices=choices,
         help="Type of player 2",
     )
+    parser.add_argument(
+        "--gui",
+        type=bool,
+        required=False,
+        default=False,
+    )
     args = parser.parse_args()
 
     game = Game(n=9)
 
-    gui = GUIQuoridor(game)
+    gui = GUIQuoridor(game) if args.gui else None
 
     def parse_player(player_arg, game) -> Player:
         if player_arg == "human":
@@ -118,6 +135,7 @@ def main():
     battle_counts = 100
     player1_win_count = 0
     player2_win_count = 0
+    first_player_win_count = 0
     draw_count = 0
 
     progress_bar = tqdm(range(battle_counts), desc=f"{args.p1}_0 vs {args.p2}_0")
@@ -136,8 +154,15 @@ def main():
         else:
             draw_count += 1
 
+        if i % 2 == 0:
+            if result == 1:
+                first_player_win_count += 1
+        else:
+            if result == -1:
+                first_player_win_count += 1
+
         progress_bar.set_description(
-            f"{args.p1}_{player1_win_count} vs {args.p2}_{player2_win_count} | Draws: {draw_count}"
+            f"{args.p1}_{player1_win_count} vs {args.p2}_{player2_win_count} | Draws: {draw_count} | First wins: {first_player_win_count}"
         )
 
 
