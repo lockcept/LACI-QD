@@ -34,13 +34,13 @@ class MCTS:
         self.game = game
         self.pi_v_function = pi_v_function
         self.args = args
-        self.Qsa = {}  # stores Q values for s,a (as defined in the paper)
-        self.Nsa = {}  # stores #times edge s,a was visited
-        self.Ns = {}  # stores #times board s was visited
-        self.Ps = {}  # stores initial policy (returned by pi_v_function)
+        self.q_sa = {}  # stores Q values for s,a (as defined in the paper)
+        self.n_sa = {}  # stores #times edge s,a was visited
+        self.n_s = {}  # stores #times board s was visited
+        self.p_s = {}  # stores initial policy (returned by pi_v_function)
 
-        self.Es = {}  # stores game.get_win_status ended for board s
-        self.Vs = {}  # stores game.get_valid_actions for board s
+        self.e_s = {}  # stores game.get_win_status ended for board s
+        self.v_s = {}  # stores game.get_valid_actions for board s
 
     def get_action_prob(self, board: Board, temp=1):
         """
@@ -56,7 +56,7 @@ class MCTS:
 
         s = board.string_representation()
         counts = [
-            self.Nsa[(s, a)] if (s, a) in self.Nsa else 0
+            self.n_sa[(s, a)] if (s, a) in self.n_sa else 0
             for a in range(self.game.get_action_size())
         ]
 
@@ -94,45 +94,45 @@ class MCTS:
 
         s = board.string_representation()
 
-        if s not in self.Es:
-            self.Es[s] = self.game.get_win_status(board, 1)
-        if self.Es[s] is not None:
+        if s not in self.e_s:
+            self.e_s[s] = self.game.get_win_status(board, 1)
+        if self.e_s[s] is not None:
             # terminal node
-            return -self.Es[s]
+            return -self.e_s[s]
 
-        if s not in self.Ps:
+        if s not in self.p_s:
             # leaf node
-            self.Ps[s], v = self.pi_v_function(board)  # Use the passed function
+            self.p_s[s], v = self.pi_v_function(board)  # Use the passed function
             valids = self.game.get_valid_actions(board)
-            self.Ps[s] = self.Ps[s] * valids  # masking invalid moves
-            sum_Ps_s = np.sum(self.Ps[s])
-            if sum_Ps_s > 0:
-                self.Ps[s] /= sum_Ps_s  # renormalize
+            self.p_s[s] = self.p_s[s] * valids  # masking invalid moves
+            sum_p_s = np.sum(self.p_s[s])
+            if sum_p_s > 0:
+                self.p_s[s] /= sum_p_s  # renormalize
             else:
                 # If all valid moves were masked, make all valid moves equally probable.
                 log.error("All valid moves were masked, doing a workaround.")
                 board.display()
-                self.Ps[s] = self.Ps[s] + valids
-                self.Ps[s] /= np.sum(self.Ps[s])
+                self.p_s[s] = self.p_s[s] + valids
+                self.p_s[s] /= np.sum(self.p_s[s])
 
-            self.Vs[s] = valids
-            self.Ns[s] = 0
+            self.v_s[s] = valids
+            self.n_s[s] = 0
             return -v
 
-        valids = self.Vs[s]
+        valids = self.v_s[s]
         cur_best = -float("inf")
         best_act = -1
 
         # pick the action with the highest upper confidence bound
         for a in range(self.game.get_action_size()):
             if valids[a]:
-                if (s, a) in self.Qsa:
-                    u = self.Qsa[(s, a)] + self.args.cpuct * self.Ps[s][a] * math.sqrt(
-                        self.Ns[s]
-                    ) / (1 + self.Nsa[(s, a)])
+                if (s, a) in self.q_sa:
+                    u = self.q_sa[(s, a)] + self.args.cpuct * self.p_s[s][
+                        a
+                    ] * math.sqrt(self.n_s[s]) / (1 + self.n_sa[(s, a)])
                 else:
                     u = (
-                        self.args.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s] + EPS)
+                        self.args.cpuct * self.p_s[s][a] * math.sqrt(self.n_s[s] + EPS)
                     )  # Q = 0 ?
 
                 if u > cur_best:
@@ -145,15 +145,15 @@ class MCTS:
 
         v = self.search(next_s)
 
-        if (s, a) in self.Qsa:
-            self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (
-                self.Nsa[(s, a)] + 1
+        if (s, a) in self.q_sa:
+            self.q_sa[(s, a)] = (self.n_sa[(s, a)] * self.q_sa[(s, a)] + v) / (
+                self.n_sa[(s, a)] + 1
             )
-            self.Nsa[(s, a)] += 1
+            self.n_sa[(s, a)] += 1
 
         else:
-            self.Qsa[(s, a)] = v
-            self.Nsa[(s, a)] = 1
+            self.q_sa[(s, a)] = v
+            self.n_sa[(s, a)] = 1
 
-        self.Ns[s] += 1
+        self.n_s[s] += 1
         return -v
