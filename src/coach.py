@@ -91,22 +91,22 @@ class Coach:
         for i in range(1, self.args.numIters + 1):
             log.info(f"Starting Iter #{i} ...")
 
-            if i == 1 and self.train_examples_history is None:
+            if i == 1 and self.train_examples_history is not None:
+                print("Skipping self-play for the first iteration")
+            else:
                 # examples of the iteration
                 iteration_train_examples = self.run_self_play()
 
                 # save the iteration examples to the history
                 self.train_examples_history.append(iteration_train_examples)
-            else:
-                print("Skipping self-play for the first iteration")
 
             if (
                 len(self.train_examples_history)
                 > self.args.numItersForTrainExamplesHistory
             ):
                 log.warning(
-                    f"Removing the oldest entry in trainExamples. "
-                    + f"len(train_examples_history) = {len(self.train_examples_history)}"
+                    "Removing the oldest entry in trainExamples. len(train_examples_history) = %d",
+                    len(self.train_examples_history),
                 )
                 self.train_examples_history.pop(0)
 
