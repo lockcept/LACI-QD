@@ -138,9 +138,7 @@ class NNetWrapper:
         """
         Compute the loss for the policy network.
         """
-        log_outputs = torch.log(outputs + 1e-8)
-        loss = -torch.sum(targets * log_outputs) / targets.size(0)
-        return loss
+        return -torch.sum(targets * outputs) / targets.size(0)
 
     def loss_v(self, targets, outputs):
         """
