@@ -50,11 +50,12 @@ class NNet(nn.Module):
         self.fc_img2 = nn.Linear(512, 256)
 
         # Fully connected layers for variables
-        self.fc_var1 = nn.Linear(var_size, 64)
-        self.fc_var2 = nn.Linear(64, 64)
+        self.fc_var1 = nn.Linear(var_size, 32)
+        self.fc_var2 = nn.Linear(32, 32)
 
         # Combined fully connected layers
-        self.fc_combined1 = nn.Linear(256 + 64, 256)
+        self.fc_combined1 = nn.Linear(256 + 32, 256)
+        self.dropout_combined1 = nn.Dropout(args.dropout)  # Dropout added here
         self.fc_combined2 = nn.Linear(256, self.action_size)
         self.fc_value = nn.Linear(256, 1)
 
@@ -98,6 +99,7 @@ class NNet(nn.Module):
 
         # Fully connected layers for combined features
         combined = F.relu(self.fc_combined1(combined))
+        combined = self.dropout_combined1(combined)  # Dropout applied here
 
         # Output layers
         pi = self.fc_combined2(combined)  # Action probabilities

@@ -22,6 +22,7 @@ args = Docdict(
     {
         "lr": 0.001,
         "dropout": 0.3,
+        "weight_decay": 1e-4,
         "epochs": 10,
         "batch_size": 64,
         "cuda": torch.cuda.is_available(),
@@ -56,7 +57,9 @@ class NNetWrapper:
         """
         examples: list of examples, each example is of form (board, pi, v)
         """
-        optimizer = optim.Adam(self.nnet.parameters())
+        optimizer = optim.Adam(
+            self.nnet.parameters(), lr=args.lr, weight_decay=args.weight_decay
+        )
 
         for epoch in range(args.epochs):
             print("EPOCH ::: " + str(epoch + 1))
@@ -135,7 +138,9 @@ class NNetWrapper:
         """
         Compute the loss for the policy network.
         """
-        return -torch.sum(targets * outputs) / targets.size()[0]
+        log_outputs = torch.log(outputs + 1e-8)
+        loss = -torch.sum(targets * log_outputs) / targets.size(0)
+        return loss
 
     def loss_v(self, targets, outputs):
         """
