@@ -128,6 +128,10 @@ def greedy_function(game: Game, board: Board):
             score = game.get_win_status(next_board, 1, force_finish=True)
             scores.append((action, score))
 
+    if not scores:
+        print(board.string_representation())
+        board.display()
+
     max_score = max(scores, key=lambda x: x[1])[1]
 
     best_actions = [action for action, score in scores if score == max_score]
