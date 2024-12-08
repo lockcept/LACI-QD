@@ -97,8 +97,6 @@ class Board:
             + str(self.my_walls)
             + ":"
             + str(self.enemy_walls)
-            + ":"
-            + str(self.turns)
         )
 
     def execute_move(self, move):

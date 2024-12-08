@@ -39,7 +39,6 @@ class MCTS:
         self.n_s = {}  # stores #times board s was visited
         self.p_s = {}  # stores initial policy (returned by pi_v_function)
 
-        self.e_s = {}  # stores game.get_win_status ended for board s
         self.v_s = {}  # stores game.get_valid_actions for board s
 
     def get_action_prob(self, board: Board, temp=1):
@@ -94,11 +93,10 @@ class MCTS:
 
         s = board.string_representation()
 
-        if s not in self.e_s:
-            self.e_s[s] = self.game.get_win_status(board, 1)
-        if self.e_s[s] is not None:
+        status = self.game.get_win_status(board, 1)
+        if status is not None:
             # terminal node
-            return -self.e_s[s]
+            return -status
 
         if s not in self.p_s:
             # leaf node
