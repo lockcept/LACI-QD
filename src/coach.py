@@ -111,7 +111,7 @@ class Coach:
                 self.train_examples_history.pop(0)
 
             # backup history to a file
-            self.save_train_examples(i - 1)
+            self.save_train_examples()
 
             # shuffle examples before training
             train_examples = []
@@ -153,12 +153,13 @@ class Coach:
             else:
                 log.info("ACCEPTING NEW MODEL")
                 self.nnet_wrapper.save_checkpoint(
-                    folder=self.args.checkpoint,
-                    filename=self.get_checkpoint_file_name(i),
-                )
-                self.nnet_wrapper.save_checkpoint(
                     folder=self.args.checkpoint, filename="best.pth.tar"
                 )
+
+            self.nnet_wrapper.save_checkpoint(
+                folder=self.args.checkpoint,
+                filename=self.get_checkpoint_file_name(i),
+            )
 
     def run_self_play(self):
         """
@@ -196,16 +197,14 @@ class Coach:
         """
         return "checkpoint_" + str(iteration) + ".pth.tar"
 
-    def save_train_examples(self, iteration):
+    def save_train_examples(self):
         """
         Saves the trainExamples to a file
         """
         folder = self.args.checkpoint
         if not os.path.exists(folder):
             os.makedirs(folder)
-        filename = os.path.join(
-            folder, self.get_checkpoint_file_name(iteration) + ".examples"
-        )
+        filename = os.path.join(folder, "last_checkpoint.exmaples")
         with open(filename, "wb+") as f:
             Pickler(f).dump(self.train_examples_history)
         f.close()
