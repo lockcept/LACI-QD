@@ -22,11 +22,11 @@ args = Docdict(
     {
         "gameSize": 9,
         "numIters": 100,
-        "numEps": 20,
+        "numEps": 50,
         "tempThreshold": 15,  #
-        "updateThreshold": 0.55,
+        "updateThreshold": 0.6,
         "maxlenOfQueue": 200000,
-        "numMCTSSims": 25,
+        "numMCTSSims": 100,
         "arenaCompare": 20,
         "cpuct": 1,
         "checkpoint": "./temp/",
@@ -35,7 +35,7 @@ args = Docdict(
         "load_examples": True,
         "load_examples_file": ("./temp", "prepared.examples"),
         "numItersForTrainExamplesHistory": 20,
-        "numProcesses": 4,
+        "numProcesses": 8,
     }
 )
 
