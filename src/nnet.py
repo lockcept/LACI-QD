@@ -20,7 +20,7 @@ class NNet(nn.Module):
 
         # Game parameters
         board_size, var_size = game.get_input_size()
-        self.board_x, self.board_y, self.board_z = board_size  # 3 x 17 x 17 for n = 9
+        self.board_x, self.board_y, self.board_z = board_size  # 5 x 17 x 17 for n = 9
         self.var_size = var_size
         self.action_size = game.get_action_size()
         self.args = args
@@ -29,7 +29,7 @@ class NNet(nn.Module):
 
         # CNN for image input
         self.conv1 = nn.Conv2d(
-            in_channels=3,
+            in_channels=self.board_x,
             out_channels=out_channels[0],
             kernel_size=3,
             stride=1,
