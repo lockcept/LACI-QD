@@ -30,8 +30,12 @@ class Game:
             tuple: A tuple containing the dimensions of the board
         """
         size_with_wall = self.n * 2 - 1
-        board_size = (3, size_with_wall, size_with_wall)  # my_pos, enemy_pos, walls
-        var_size = 2  # my_walls, enemy_walls
+        board_size = (
+            5,
+            size_with_wall,
+            size_with_wall,
+        )  # my_pos, enemy_pos, walls, distance_board, enemy_distance_board
+        var_size = 4  # my_walls, enemy_walls, my_distance, enemy_distance
         return board_size, var_size
 
     def get_action_size(self):
@@ -199,8 +203,20 @@ class Game:
             board_array[2, x * 2 + 1, y * 2 + 1] = 1
             board_array[2, x * 2 + 2, y * 2 + 1] = 1
 
+        distance_board = board.get_distance_board(1)
+        for x in range(self.n):
+            for y in range(self.n):
+                board_array[3, x * 2, y * 2] = distance_board[x, y]
+
+        enemy_distance_board = board.get_distance_board(-1)
+        for x in range(self.n):
+            for y in range(self.n):
+                board_array[4, x * 2, y * 2] = enemy_distance_board[x, y]
+
         var_array = np.zeros(var_size)
         var_array[0] = board.my_walls
         var_array[1] = board.enemy_walls
+        var_array[2] = distance_board[my_x, my_y]
+        var_array[3] = enemy_distance_board[enemy_x, enemy_y]
 
         return (board_array, var_array)

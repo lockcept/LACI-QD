@@ -250,39 +250,43 @@ class Board:
 
         return True
 
-    def get_distance_to_goal(self, player, h_walls=None, v_walls=None):
+    def get_distance_board(self, player, h_walls=None, v_walls=None):
         """
-        Determines the minimum distance for a player to reach their goal row on the board.
+        Calculates the minimum distance from each cell on the board to the goal row.
 
         Args:
-            start (tuple): The starting position (x, y) of the player.
             player (int): The player number (1 or -1). Player 1 aims for the last row, player -1 aims for the first row.
             h_walls (set): A set of tuples representing the positions of horizontal walls.
             v_walls (set): A set of tuples representing the positions of vertical walls.
 
         Returns:
-            int: The minimum distance to the goal row if reachable, otherwise -1.
+            list[list[int]]: An n x n board where each cell contains the minimum distance to the goal row.
         """
         h_walls = h_walls or self.h_walls
         v_walls = v_walls or self.v_walls
 
-        goal_row = self.n - 1 if player == 1 else 0
+        n = self.n
+        goal_row = n - 1 if player == 1 else 0
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        start = self.my_pos if player == 1 else self.enemy_pos
-        queue = deque([(start, 0)])  # (current_position, distance)
-        visited = set()
-        visited.add(start)
+
+        # Initialize the distance board with -1 (unreachable cells)
+        distance_board = np.full((n, n), -1, dtype=int)
+
+        # Queue for BFS starting from the goal row
+        queue = deque([(goal_row, y, 0) for y in range(n)])  # (x, y, distance)
+        visited = set((goal_row, y) for y in range(n))
 
         while queue:
-            (x, y), distance = queue.popleft()
+            x, y, distance = queue.popleft()
 
-            # Check if the current position is on the goal row
-            if x == goal_row:
-                return distance
+            # Update the distance board
+            distance_board[x, y] = distance
 
             for dx, dy in directions:
                 nx, ny = x + dx, y + dy
-                if 0 <= nx < self.n and 0 <= ny < self.n and (nx, ny) not in visited:
+
+                # Check board boundaries and if already visited
+                if 0 <= nx < n and 0 <= ny < n and (nx, ny) not in visited:
                     # Check wall conditions
                     if (
                         (
@@ -306,11 +310,28 @@ class Board:
                             and (x, y) not in v_walls
                         )
                     ):
-                        queue.append(((nx, ny), distance + 1))
+                        queue.append((nx, ny, distance + 1))
                         visited.add((nx, ny))
 
-        # If the goal row is not reachable, return -1
-        return -1
+        return distance_board
+
+    def get_distance_to_goal(self, player, h_walls=None, v_walls=None):
+        """
+        Determines the minimum distance for a player to reach their goal row on the board.
+
+        Args:
+            start (tuple): The starting position (x, y) of the player.
+            player (int): The player number (1 or -1). Player 1 aims for the last row, player -1 aims for the first row.
+            h_walls (set): A set of tuples representing the positions of horizontal walls.
+            v_walls (set): A set of tuples representing the positions of vertical walls.
+
+        Returns:
+            int: The minimum distance to the goal row if reachable, otherwise -1.
+        """
+
+        distance_board = self.get_distance_board(player, h_walls, v_walls)
+        pos = self.my_pos if player == 1 else self.enemy_pos
+        return distance_board[pos[0], pos[1]]
 
     def get_legal_walls(self):
         """
