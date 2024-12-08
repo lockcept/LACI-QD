@@ -25,7 +25,7 @@ def generate_train_examples(game: Game, num_games: int):
 
         while True:
             canonical_board = board.get_canonical_form(cur_player)
-            pi, _ = greedy_function(game, board)
+            pi, _ = greedy_function(game, canonical_board)
             score = game.get_win_status(canonical_board, 1, force_finish=True)
             sym = game.get_symmetries(canonical_board, pi)
 
