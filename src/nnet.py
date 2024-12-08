@@ -20,50 +20,79 @@ class NNet(nn.Module):
 
         # Game parameters
         board_size, var_size = game.get_input_size()
-        self.board_x, self.board_y, self.board_z = board_size
+        self.board_x, self.board_y, self.board_z = board_size  # 3 x 17 x 17 for n = 9
         self.var_size = var_size
         self.action_size = game.get_action_size()
         self.args = args
 
+        out_channels = [64, 128, 256, 512]
+
         # CNN for image input
         self.conv1 = nn.Conv2d(
-            self.board_x, args.num_channels, kernel_size=5, stride=2, padding=2
-        )
-        self.conv2 = nn.Conv2d(
-            args.num_channels, args.num_channels, kernel_size=5, stride=2, padding=2
-        )
-        self.conv3 = nn.Conv2d(
-            args.num_channels, args.num_channels, kernel_size=5, stride=2, padding=2
-        )
+            in_channels=3,
+            out_channels=out_channels[0],
+            kernel_size=3,
+            stride=1,
+            padding=1,
+        )  # 17x17 -> 17x17
 
-        self.bn1 = nn.BatchNorm2d(args.num_channels)
-        self.bn2 = nn.BatchNorm2d(args.num_channels)
-        self.bn3 = nn.BatchNorm2d(args.num_channels)
+        self.conv2 = nn.Conv2d(
+            in_channels=out_channels[0],
+            out_channels=out_channels[1],
+            kernel_size=5,
+            stride=2,
+            padding=2,
+        )  # 17x17 -> 9x9
+
+        self.conv3 = nn.Conv2d(
+            in_channels=out_channels[1],
+            out_channels=out_channels[2],
+            kernel_size=3,
+            stride=1,
+            padding=1,
+        )  # 9x9 -> 9x9
+
+        self.conv4 = nn.Conv2d(
+            in_channels=out_channels[2],
+            out_channels=out_channels[3],
+            kernel_size=3,
+            stride=1,
+            padding=1,
+        )  # 9x9 -> 9x9
+
+        self.bn1 = nn.BatchNorm2d(out_channels[0])
+        self.bn2 = nn.BatchNorm2d(out_channels[1])
+        self.bn3 = nn.BatchNorm2d(out_channels[2])
+        self.bn4 = nn.BatchNorm2d(out_channels[3])
 
         # Calculate dynamic output size after convolutions
         final_board_x, final_board_y = self.calculate_conv_output(
             self.board_y, self.board_z
         )
 
+        full_channels = [512, 256]
+
         # Fully connected layers for image features
-        self.fc_img1 = nn.Linear(args.num_channels * final_board_x * final_board_y, 512)
-        self.fc_img2 = nn.Linear(512, 256)
+        self.fc_img1 = nn.Linear(
+            out_channels[3] * final_board_x * final_board_y, full_channels[0]
+        )
+        self.fc_img2 = nn.Linear(full_channels[0], full_channels[1])
 
         # Fully connected layers for variables
         self.fc_var1 = nn.Linear(var_size, 32)
         self.fc_var2 = nn.Linear(32, 32)
 
         # Combined fully connected layers
-        self.fc_combined1 = nn.Linear(256 + 32, 256)
+        self.fc_combined1 = nn.Linear(full_channels[1] + 32, 256)
         self.dropout_combined1 = nn.Dropout(args.dropout)  # Dropout added here
         self.fc_combined2 = nn.Linear(256, self.action_size)
         self.fc_value = nn.Linear(256, 1)
 
     def calculate_conv_output(self, height, width):
         """
-        Dynamically calculates the output size after 3 Conv2d layers.
+        Dynamically calculates the output size after Conv2d layers.
         """
-        for conv in [self.conv1, self.conv2, self.conv3]:
+        for conv in [self.conv1, self.conv2, self.conv3, self.conv4]:
             height = (
                 height + 2 * conv.padding[0] - conv.kernel_size[0]
             ) // conv.stride[0] + 1
@@ -82,6 +111,7 @@ class NNet(nn.Module):
         x = F.relu(self.bn1(self.conv1(board)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
+        x = F.relu(self.bn4(self.conv4(x)))
 
         # Flatten the CNN output
         x = x.view(x.size(0), -1)

@@ -26,7 +26,6 @@ args = Docdict(
         "epochs": 10,
         "batch_size": 64,
         "cuda": torch.cuda.is_available(),
-        "num_channels": 512,
     }
 )
 
