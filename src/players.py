@@ -97,11 +97,11 @@ class MctsPlayer(Player):
     Handle the MCTS player actions.
     """
 
-    def __init__(self, game):
+    def __init__(self, game: Game, model_file="best.pth.tar"):
         Player.__init__(self, game)
         self.game = game
         nnet_wrapper = NNetWrapper(game)
-        nnet_wrapper.load_checkpoint("./models", "best.pth.tar")
+        nnet_wrapper.load_checkpoint("./models", model_file)
         self.mcts = MCTS(
             game=game,
             pi_v_function=nnet_wrapper.get_pi_v,
@@ -109,9 +109,34 @@ class MctsPlayer(Player):
         )
 
     def play(self, board, reverse_x):
-        temp = 1
-        pi = self.mcts.get_action_prob(board, temp=temp)
+        pi = self.mcts.get_action_prob(board, temp=0.5)
         return np.random.choice(len(pi), p=pi), pi
+
+
+class NNetPlayer(Player):
+    """
+    Handle the NNet player actions.
+    """
+
+    def __init__(self, game: Game, model_file="best.pth.tar"):
+        Player.__init__(self, game)
+        self.game = game
+        nnet_wrapper = NNetWrapper(game)
+        nnet_wrapper.load_checkpoint("./models", model_file)
+        self.nnet = nnet_wrapper
+
+    def play(self, board, reverse_x):
+        """
+        return argmax action and the action probabilities
+        """
+        pi, _ = self.nnet.predict(self.game.board_to_input(board))
+        valid_actions = self.game.get_valid_actions(board)
+        pi = pi * valid_actions
+
+        pi_sum = float(sum(pi))
+        pi = [x / pi_sum for x in pi]
+
+        return np.argmax(pi), pi
 
 
 def greedy_function(game: Game, board: Board):

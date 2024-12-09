@@ -12,6 +12,7 @@ from game import Game
 from players import (
     GreedyMctsPlayer,
     GreedyPlayer,
+    NNetPlayer,
     Player,
     RandomPlayer,
     HumanPlayer,
@@ -88,7 +89,7 @@ def main():
     Main function to parse command line arguments and start a game.
     """
     parser = argparse.ArgumentParser(description="Play a Quoridor game.")
-    choices = ["human", "random", "mcts", "greedy", "greedymcts"]
+    choices = ["human", "random", "mcts", "nnet", "greedy", "greedymcts"]
     parser.add_argument(
         "--p1",
         type=str,
@@ -122,6 +123,8 @@ def main():
             return RandomPlayer(game)
         elif player_arg == "mcts":
             return MctsPlayer(game)
+        elif player_arg == "nnet":
+            return NNetPlayer(game)
         elif player_arg == "greedy":
             return GreedyPlayer(game)
         elif player_arg == "greedymcts":
