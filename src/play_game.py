@@ -25,7 +25,7 @@ def play_game(
     player2: Player,
     game: Game,
     gui: Optional[GUIQuoridor] = None,
-    delay=0.2,
+    delay=0,
 ):
     """
     Simulates a game between two players using the provided game logic and GUI.
