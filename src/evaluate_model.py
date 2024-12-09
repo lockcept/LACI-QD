@@ -24,12 +24,6 @@ def get_cross_entropy_from_greedy(model_file, examples_path):
     with open(examples_path, "rb") as file:
         train_examples_history = Unpickler(file).load()
 
-    train_examples_count = 0
-    for e in train_examples_history:
-        train_examples_count += len(e)
-
-    print("total examples: ", train_examples_count)
-
     train_examples = []
     for e in train_examples_history:
         train_examples.extend(e)
@@ -51,7 +45,7 @@ def get_cross_entropy_from_greedy(model_file, examples_path):
 
 
 if __name__ == "__main__":
-    MODEL_NAME = "temp.pth.tar"
+    MODEL_NAME = "checkpoint_17.pth.tar"
     EXAMPLES_NAME = "prepared.examples"
     CSV_FILE_PATH = "logs/evaluation.csv"
 
