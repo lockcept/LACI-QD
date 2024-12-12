@@ -32,8 +32,9 @@ args = Docdict(
         "checkpoint": "./models/",
         "load_model": False,
         "load_folder_file": ("./models", "best.pth.tar"),
+        "load_index": 100,
         "load_examples": True,
-        "load_examples_file": ("./examples", "prepared.examples"),
+        "load_examples_file": ("./examples", "last_checkpoint.examples"),
         "numItersForTrainExamplesHistory": 20,
         "numProcesses": 1,
     }

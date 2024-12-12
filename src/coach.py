@@ -88,7 +88,8 @@ class Coach:
         It then pits the new neural network against the old one and accepts it
         only if it wins >= updateThreshold fraction of games.
         """
-        for i in range(1, self.args.numIters + 1):
+        start_index = self.args.load_index if self.args.load_model else 1
+        for i in range(start_index, start_index + self.args.numIters):
             log.info(f"Starting Iter #{i} ...")
 
             if i == 1 and self.train_examples_history:
@@ -204,7 +205,7 @@ class Coach:
         folder = self.args.checkpoint
         if not os.path.exists(folder):
             os.makedirs(folder)
-        filename = os.path.join(folder, "last_checkpoint.exmaples")
+        filename = os.path.join(folder, "last_checkpoint.examples")
         with open(filename, "wb+") as f:
             Pickler(f).dump(self.train_examples_history)
         f.close()
