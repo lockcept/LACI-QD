@@ -46,7 +46,7 @@ if __name__ == "__main__":
     g = Game(n=9)
     train_examples_history = []
 
-    FOLDER = "models"
+    FOLDER = "examples"
 
     for i in range(20):
         print(f"Generating train examples {i+1}")
