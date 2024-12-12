@@ -8,11 +8,12 @@ from random import shuffle
 
 import numpy as np
 from tqdm import tqdm
+import torch.multiprocessing as mp
 
 from game import Game
 from nnet_wrapper import NNetWrapper
 from play_game import play_game
-from players import Player, NNetPlayer, MctsPlayer, GreedyPlayer
+from players import NNetPlayer, MctsPlayer, GreedyPlayer
 
 
 def get_cross_entropy_from_greedy(model_file, train_examples):
@@ -38,41 +39,79 @@ def get_cross_entropy_from_greedy(model_file, train_examples):
     return cross_entropy / example_count, score_mse / example_count
 
 
-def simulate_games(game: Game, player1: Player, player2: Player, game_num=5):
+def parallel_play_game(args):
     """
-    Play a game with the greedy function.
+    play game function for multiprocessing
     """
+    i, player1, player2, game = args
+    if i % 2 == 0:
+        return play_game(player1, player2, game, gui=None, delay=0)
+    else:
+        return -play_game(player2, player1, game, gui=None, delay=0)
 
-    progress_bar = tqdm(range(game_num), desc="Playing Game with Greedy")
 
+def run_games_with_multiprocessing(
+    player1_type, player2_type, model_name, game: Game, game_num=100, num_processes=8
+):
+    """
+    Run games with multiprocessing
+    if num_processes is 1, it will run in single process
+    """
     player1_win_count = 0
     player2_win_count = 0
     draw_count = 0
 
-    progress_bar = tqdm(range(game_num), desc="0 vs 0")
-
-    for i in progress_bar:
-        result = 0
-        if i % 2 == 0:
-            result = play_game(player1, player2, game, gui=None, delay=0)
+    args = []
+    for i in range(game_num):
+        if player1_type == "mcts":
+            player1 = MctsPlayer(game, model_name)
+        elif player1_type == "nnet":
+            player1 = NNetPlayer(game, model_name)
         else:
-            result = -play_game(player2, player1, game, gui=None, delay=0)
+            player1 = GreedyPlayer(game)
 
-        if result == 1:
+        if player2_type == "mcts":
+            player2 = MctsPlayer(game, model_name)
+        elif player2_type == "nnet":
+            player2 = NNetPlayer(game, model_name)
+        else:
+            player2 = GreedyPlayer(game)
+
+        args.append((i, player1, player2, game))
+
+    if num_processes == 1:
+        results = []
+        for arg in tqdm(args, total=len(args), desc="Self Play"):
+            result = parallel_play_game(arg)
+            results.append(result)
+    else:
+        with mp.Pool(processes=num_processes) as pool:
+            results = list(
+                tqdm(
+                    pool.imap(parallel_play_game, args),
+                    total=len(args),
+                    desc="Self Play",
+                )
+            )
+
+    for game_result in results:
+        if game_result == 1:
             player1_win_count += 1
-        elif result == -1:
+        elif game_result == -1:
             player2_win_count += 1
         else:
             draw_count += 1
 
-        progress_bar.set_description(
-            f"{player1_win_count} vs {player2_win_count} | Draws: {draw_count}"
-        )
+    print(player1_win_count, player2_win_count, draw_count)
 
     return player1_win_count / (player1_win_count + player2_win_count)
 
 
 def main():
+    """
+    Main function to evaluate the model.
+    """
+
     csv_file_path = "logs/evaluation.csv"
     examples_path = "models/prepared.examples"
 
@@ -86,20 +125,22 @@ def main():
 
     game = Game(9)
 
-    for i in range(0, 30):
+    for i in range(1, 100, 10):
         model_name = f"checkpoint_{i}.pth.tar"
         print(f"evaluating {model_name}")
 
         ce, mse = get_cross_entropy_from_greedy(model_name, train_examples)
         print(ce, mse)
 
-        nnet_player = NNetPlayer(game, model_name)
-        mcts_player = MctsPlayer(game, model_name)
-        greedy_player = GreedyPlayer(game)
-
-        nnet_win_rate_vs_greedy = simulate_games(game, nnet_player, greedy_player)
-        mcts_win_rate_vs_greedy = simulate_games(game, mcts_player, greedy_player)
-        mcts_win_rate_vs_nnet = simulate_games(game, mcts_player, nnet_player)
+        nnet_win_rate_vs_greedy = run_games_with_multiprocessing(
+            "nnet", "greedy", model_name, game
+        )
+        mcts_win_rate_vs_greedy = run_games_with_multiprocessing(
+            "mcts", "greedy", model_name, game
+        )
+        mcts_win_rate_vs_nnet = run_games_with_multiprocessing(
+            "mcts", "nnet", model_name, game
+        )
 
         with open(csv_file_path, "a", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
@@ -127,4 +168,5 @@ def main():
 
 
 if __name__ == "__main__":
+    mp.set_start_method("spawn", force=True)
     main()
