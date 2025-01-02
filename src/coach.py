@@ -88,7 +88,7 @@ class Coach:
         It then pits the new neural network against the old one and accepts it
         only if it wins >= updateThreshold fraction of games.
         """
-        start_index = self.args.load_index if self.args.load_model else 1
+        start_index = self.args.load_index + 1 if self.args.load_model else 1
         for i in range(start_index, start_index + self.args.numIters):
             log.info(f"Starting Iter #{i} ...")
 

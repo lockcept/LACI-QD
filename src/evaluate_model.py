@@ -113,7 +113,7 @@ def main():
     """
 
     csv_file_path = "logs/evaluation.csv"
-    examples_path = "models/prepared.examples"
+    examples_path = "examples/prepared.examples"
 
     with open(examples_path, "rb") as file:
         train_examples_history = Unpickler(file).load()
